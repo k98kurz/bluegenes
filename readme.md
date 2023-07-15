@@ -133,8 +133,8 @@ func mutateGene(gene *Gene[int]) {
 // Gene initialization options
 base_factory := func() int { return RandomInt(-10, 10) }
 opts := gobluegenes.MakeOptions[int]{
-	n_bases:      gobluegenes.NewOption(uint(5)),
-	base_factory: gobluegenes.NewOption(base_factory),
+	NBases:      gobluegenes.NewOption(uint(5)),
+	BaseFactory: gobluegenes.NewOption(base_factory),
 }
 
 // create initial population

@@ -384,8 +384,8 @@ func TestGene(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			g, err := MakeGene[int](MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				base_factory: NewOption(factory),
+				NBases:      NewOption(uint(5)),
+				BaseFactory: NewOption(factory),
 			})
 			if err != nil {
 				t.Fatalf("MakeGene[int] failed with error: %v", err)
@@ -577,9 +577,9 @@ func TestAllele(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			a, err := MakeAllele[int](MakeOptions[int]{
-				n_genes:      NewOption(uint(3)),
-				n_bases:      NewOption(uint(5)),
-				base_factory: NewOption(factory),
+				NGenes:      NewOption(uint(3)),
+				NBases:      NewOption(uint(5)),
+				BaseFactory: NewOption(factory),
 			})
 			if err != nil {
 				t.Fatalf("MakeAllele[int] failed with error: %v", err)
@@ -787,10 +787,10 @@ func TestChromosome(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			a, err := MakeChromosome[int](MakeOptions[int]{
-				n_alleles:    NewOption(uint(3)),
-				n_genes:      NewOption(uint(3)),
-				n_bases:      NewOption(uint(5)),
-				base_factory: NewOption(factory),
+				NAlleles:    NewOption(uint(3)),
+				NGenes:      NewOption(uint(3)),
+				NBases:      NewOption(uint(5)),
+				BaseFactory: NewOption(factory),
 			})
 			if err != nil {
 				t.Fatalf("MakeChromosome[int] failed with error: %v", err)
@@ -1001,11 +1001,11 @@ func TestGenome(t *testing.T) {
 
 		for i := 0; i < 10; i++ {
 			g, err := MakeGenome[int](MakeOptions[int]{
-				n_chromosomes: NewOption(uint(2)),
-				n_alleles:     NewOption(uint(3)),
-				n_genes:       NewOption(uint(3)),
-				n_bases:       NewOption(uint(5)),
-				base_factory:  NewOption(factory),
+				NChromosomes: NewOption(uint(2)),
+				NAlleles:     NewOption(uint(3)),
+				NGenes:       NewOption(uint(3)),
+				NBases:       NewOption(uint(5)),
+				BaseFactory:  NewOption(factory),
 			})
 			if err != nil {
 				t.Fatalf("MakeGenome[int] failed with error: %v", err)

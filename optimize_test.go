@@ -181,11 +181,11 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -227,11 +227,11 @@ func TestOptimize(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -274,11 +274,11 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -320,11 +320,11 @@ func TestOptimize(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -367,11 +367,11 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -413,11 +413,11 @@ func TestOptimize(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -460,11 +460,11 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -506,11 +506,11 @@ func TestOptimize(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -555,11 +555,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -596,11 +596,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("expensive", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -639,11 +639,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -680,11 +680,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("expensive", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -723,11 +723,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -764,11 +764,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("expensive", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -808,11 +808,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
@@ -849,11 +849,11 @@ func TestTuneOptimize(t *testing.T) {
 		t.Run("expensive", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:       NewOption(uint(5)),
-				n_genes:       NewOption(uint(4)),
-				n_alleles:     NewOption(uint(3)),
-				n_chromosomes: NewOption(uint(2)),
-				base_factory:  NewOption(base_factory),
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
