@@ -92,13 +92,13 @@ and provide randomized breeeding and recombination. They can also be used in
 functions provided as parameters where relevant, e.g. `MakeOptions.BaseFactory`.
 
 - `type Option[T any] struct`
-    - `isSet bool`
+    - `IsSet bool`
     - `val   T`
     - `func (o Option[T]) ok() bool`
 - `func NewOption[T any](val ...T) Option[T]`
 
 This is a type that wraps any value used as a parameter. This is used internally
-because `isSet` initializes as `false` and `NewOption(val)` sets it to `true`,
+because `IsSet` initializes as `false` and `NewOption(val)` sets it to `true`,
 making it easy to supply required params and omit optional params. For example,
 `MakeOptions[int]{BaseFactory: NewOption(someFunc), NBases: NewOption(10)}.`
 
@@ -128,7 +128,7 @@ only the `Allele` will have the name, while the `Gene`s will have random names.
 This controls recombination behavior. All are opt-out; default behavior is to
 treat each unspecified value as `true`. When evolving an `Allele`, the underlying
 `Gene`s will be recombined unless `RecombineGenes` == `NewOption(false)`, and
-they will recombine if they have matching names, if `MatchGenes.isSet` is
+they will recombine if they have matching names, if `MatchGenes.IsSet` is
 `false`, or if `MatchGenes` == `NewOption(false)`. When evolving a `Chromosome`,
 the same logic applies regarding `RecombineAlleles` and `MatchAlleles`, and the
 params are also passed into the calls to `Allele.Recombine`, so the options about
@@ -332,88 +332,99 @@ trivial example of how to do the first of these three.
 package main
 
 import (
+    "fmt"
     "math"
-    "github.com/k98kurz/gobluegenes"
+    "math/rand"
+    "github.com/k98kurz/bluegenes"
 )
 
-target := 123456
+var target int = 123456
 
 // Produces a fitness score. Passed as parameter to OptimizeGene.
-func measureFitness(gene *Gene[int]) float64 {
+func measureFitness(code bluegenes.Code[int]) float64 {
     sum := 0
-    for _, b := gene.Bases {
+    if !code.Gene.Ok() {
+        return 0.0
+    }
+    for _, b := range code.Gene.Val.Bases {
         sum += b
     }
     return 1.0 / (1.0 + math.Abs(float64(sum - target)))
 }
 
 // Mutates a gene at random. Passed as parameter to OptimizeGene.
-func mutateGene(gene *Gene[int]) {
-	gene.Mu.Lock()
-	defer gene.Mu.Unlock()
-	for i := 0; i < len(gene.Bases); i++ {
+func mutateCode(code bluegenes.Code[int]) {
+    if !code.Gene.Ok() {
+        return
+    }
+	code.Gene.Val.Mu.Lock()
+	defer code.Gene.Val.Mu.Unlock()
+	for i := 0; i < len(code.Gene.Val.Bases); i++ {
 		val := rand.Float64()
 		if val <= 0.1 {
-			gene.Bases[i] /= gobluegenes.RandomInt(1, 3)
+			code.Gene.Val.Bases[i] /= bluegenes.RandomInt(1, 3)
 		} else if val <= 0.2 {
-			gene.Bases[i] *= gobluegenes.RandomInt(1, 3)
+			code.Gene.Val.Bases[i] *= bluegenes.RandomInt(1, 3)
 		} else if val <= 0.6 {
-			gene.Bases[i] += gobluegenes.RandomInt(0, 11)
+			code.Gene.Val.Bases[i] += bluegenes.RandomInt(0, 11)
 		} else {
-			gene.Bases[i] -= gobluegenes.RandomInt(0, 11)
+			code.Gene.Val.Bases[i] -= bluegenes.RandomInt(0, 11)
 		}
 	}
 }
 
-// Gene initialization options
-base_factory := func() int { return RandomInt(-10, 10) }
-opts := gobluegenes.MakeOptions[int]{
-	NBases:      gobluegenes.NewOption(uint(5)),
-	BaseFactory: gobluegenes.NewOption(base_factory),
+func main() {
+	// Gene initialization options
+	base_factory := func() int { return bluegenes.RandomInt(-10, 10) }
+	opts := bluegenes.MakeOptions[int]{
+		NBases:      bluegenes.NewOption(uint(5)),
+		BaseFactory: bluegenes.NewOption(base_factory),
+	}
+
+	// create initial population
+	initial_population := []bluegenes.Code[int]{}
+	for i := 0; i < 10; i++ {
+		gene, _ := bluegenes.MakeGene(opts)
+		initial_population = append(initial_population, bluegenes.Code[int]{Gene: bluegenes.NewOption(gene)})
+	}
+
+	// optional: log each iteration
+	log_iteration := func(gc int, pop []bluegenes.ScoredCode[int]) {
+		fmt.Printf("generation %d, best score %f\n", gc, pop[0].Score)
+	}
+
+	// set up parameters
+	params := bluegenes.OptimizationParams[int]{
+		InitialPopulation: bluegenes.NewOption(initial_population),
+		MeasureFitness:    bluegenes.NewOption(measureFitness),
+		Mutate:            bluegenes.NewOption(mutateCode),
+		MaxIterations:     bluegenes.NewOption(1000),
+	}
+
+	// optional: tune the optimization; not necessary for this trivial example
+	parallel_size, err := bluegenes.TuneOptimization(params)
+
+	if err != nil {
+		fmt.Println("error encountered during tuning:", err)
+	} else if parallel_size > 1 {
+		params.ParallelCount = bluegenes.NewOption(parallel_size)
+	}
+
+	params.IterationHook = bluegenes.NewOption(log_iteration)
+
+	// run optimization
+	n_iterations, final_population, err := bluegenes.Optimize(params)
+
+	best_fitness := final_population[0]
+	sum := 0
+	for _, b := range best_fitness.Code.Gene.Val.Bases{
+		sum += b
+	}
+
+	fmt.Printf("%d generations passed", n_iterations)
+	fmt.Printf("the best result had sum=%d compared to target=%d\n", sum, target)
+	fmt.Println(best_fitness.Code.Gene.Val.ToMap())
 }
-
-// create initial population
-initial_population := []gobluegenes.Code[int]{}
-for i := 0; i < 10; i++ {
-	gene, _ := gobluegenes.MakeGene(opts)
-	initial_population = append(initial_population, Code[int]{Gene: gene})
-}
-
-// optional: log each iteration
-log_iteration := func(gc int, pop []ScoredCode[int]) {
-	fmt.Printf("generation %d, best score %f\n", gc, pop[0].Score)
-}
-
-// set up parameters
-params := OptimizationParams[int]{
-	InitialPopulation: gobluegenes.NewOption(initial_population),
-	MeasureFitness:    gobluegenes.NewOption(measureFitness),
-	Mutate:            gobluegenes.NewOption(mutateGene),
-	MaxIterations:     gobluegenes.NewOption(1000),
-	IterationHook:     log_iteration,
-}
-
-// optional: tune the optimization; not necessary for this trivial example
-parallel_size, err := gobluegenes.TuneOptimization(params)
-
-if err != nil {
-    fmt.Println("error encountered during tuning:", err)
-} else if parallel_size > 1 {
-    params.ParallelCount = gobluegenes.NewOption(parallel_size)
-}
-
-// run optimization
-n_iterations, final_population, err := gobluegenes.Optimize(params)
-
-best_fitness := final_population[0]
-sum := 0
-for _, b := range best_fitness.gene{
-	sum += b
-}
-
-fmt.Printf("%d generations passed", n_iterations)
-fmt.Printf("the best result had sum=%d compared to target=%d", sum, target)
-fmt.Println(best_fitness.gene)
 ```
 
 Creating custom fitness functions or artificial life siMulations is left as an
