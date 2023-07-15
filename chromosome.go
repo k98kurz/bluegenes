@@ -129,6 +129,7 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 		for i := 0; i < min_size; i++ {
 			if (options.MatchAlleles.ok() &&
 				!options.MatchAlleles.val) ||
+				!options.MatchAlleles.ok() ||
 				alleles[i].Name == other_alleles[i].Name {
 				allele, err := alleles[i].Recombine(other_alleles[i], []int{}, options)
 				if err != nil {

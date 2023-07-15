@@ -129,6 +129,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 		for i := 0; i < min_size; i++ {
 			if (options.MatchChromosomes.ok() &&
 				!options.MatchChromosomes.val) ||
+				!options.MatchChromosomes.ok() ||
 				chromosomes[i].Name == other_chromosomes[i].Name {
 				chromosome, err := chromosomes[i].Recombine(other_chromosomes[i], []int{}, options)
 				if err != nil {
