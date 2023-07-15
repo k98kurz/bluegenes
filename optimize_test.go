@@ -151,6 +151,25 @@ func mutateGeneExpensive(gene *Gene[int]) {
 	}
 }
 
+func mutateGeneticMaterialExpensive(code GeneticMaterial[int]) {
+	val := 42.0
+	for i := 0; i < 1000; i++ {
+		val /= 6.9
+	}
+	if code.gene.ok() {
+		mutateGene(code.gene.val)
+	}
+	if code.allele.ok() {
+		mutateAllele(code.allele.val)
+	}
+	if code.chromosome.ok() {
+		mutateChromosome(code.chromosome.val)
+	}
+	if code.genome.ok() {
+		mutateGenome(code.genome.val)
+	}
+}
+
 func mutateAlleleExpensive(allele *Allele[int]) {
 	allele.mu.Lock()
 	defer allele.mu.Unlock()
@@ -232,6 +251,33 @@ func measureGenomeFitnessExpensive(genome *Genome[int]) float64 {
 		}
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
+}
+
+func measureGeneticMaterialFitnessExpensive(code GeneticMaterial[int]) float64 {
+	val := 42.0
+	for i := 0; i < 1000; i++ {
+		val /= 6.9
+	}
+	fitness := 0.0
+	fitness_count := 0
+	if code.gene.ok() {
+		fitness += measureGeneFitness(code.gene.val)
+		fitness_count++
+	}
+	if code.allele.ok() {
+		fitness += measureAlleleFitness(code.allele.val)
+		fitness_count++
+	}
+	if code.chromosome.ok() {
+		fitness += measureChromosomeFitness(code.chromosome.val)
+		fitness_count++
+	}
+	if code.genome.ok() {
+		fitness += measureGenomeFitness(code.genome.val)
+		fitness_count++
+	}
+
+	return fitness / float64(fitness_count)
 }
 
 func TestOptimize(t *testing.T) {
@@ -619,15 +665,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Gene[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, gene)
+				initial_population = append(initial_population, GeneticMaterial[int]{gene: NewOption(gene)})
 			}
-			params := OptimizationParams[int, Gene[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGeneFitness),
-				mutate:             NewOption(mutateGene),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -639,14 +685,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneGeneOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
 				t.Fatalf("TuneGeneOptimization failed with error: %v", err)
 			}
 
 			if n_goroutines > 1 {
 				t.Errorf("TuneGeneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkGeneOptimization(params)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -660,15 +706,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Gene[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, gene)
+				initial_population = append(initial_population, GeneticMaterial[int]{gene: NewOption(gene)})
 			}
-			params := OptimizationParams[int, Gene[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGeneFitnessExpensive),
-				mutate:             NewOption(mutateGeneExpensive),
+				measure_fitness:    NewOption(measureGeneticMaterialFitnessExpensive),
+				mutate:             NewOption(mutateGeneticMaterialExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -680,14 +726,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneGeneOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
 				t.Fatalf("TuneGeneOptimization failed with error: %v", err)
 			}
 
 			if n_goroutines < 1 {
 				t.Errorf("TuneGeneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkGeneOptimization(params)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -703,15 +749,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Allele[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeAllele(opts)
-				initial_population = append(initial_population, gene)
+				allele, _ := MakeAllele(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{allele: NewOption(allele)})
 			}
-			params := OptimizationParams[int, Allele[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureAlleleFitness),
-				mutate:             NewOption(mutateAllele),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -723,14 +769,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneAlleleOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneAlleleOptimization failed with error: %v", err)
+				t.Fatalf("TuneGeneticMaterialOptimization for Allele[int] failed with error: %v", err)
 			}
 
 			if n_goroutines > 1 {
-				t.Errorf("TuneAlleleOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkAlleleOptimization(params)
+				t.Errorf("TuneGeneticMaterialOptimization for Allele[int] failed: expected 1, observed %d", n_goroutines)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -744,15 +790,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Allele[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeAllele(opts)
-				initial_population = append(initial_population, gene)
+				allele, _ := MakeAllele(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{allele: NewOption(allele)})
 			}
-			params := OptimizationParams[int, Allele[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureAlleleFitnessExpensive),
-				mutate:             NewOption(mutateAlleleExpensive),
+				measure_fitness:    NewOption(measureGeneticMaterialFitnessExpensive),
+				mutate:             NewOption(mutateGeneticMaterialExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -764,14 +810,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneAlleleOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneAlleleOptimization failed with error: %v", err)
+				t.Fatalf("TuneGeneticMaterialOptimization for Allele[int] failed with error: %v", err)
 			}
 
 			if n_goroutines < 1 {
-				t.Errorf("TuneAlleleOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkAlleleOptimization(params)
+				t.Errorf("TuneGeneticMaterialOptimization for Allele[int] failed: expected 1, observed %d", n_goroutines)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -787,15 +833,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Chromosome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, gene)
+				chromosome, _ := MakeChromosome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{chromosome: NewOption(chromosome)})
 			}
-			params := OptimizationParams[int, Chromosome[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureChromosomeFitness),
-				mutate:             NewOption(mutateChromosome),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -807,14 +853,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneChromosomeOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneChromosomeOptimization failed with error: %v", err)
+				t.Fatalf("TuneGeneticMaterialOptimization failed with error: %v", err)
 			}
 
 			if n_goroutines > 1 {
-				t.Errorf("TuneChromosomeOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkChromosomeOptimization(params)
+				t.Errorf("TuneGeneticMaterialOptimization failed: expected 1, observed %d", n_goroutines)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -828,15 +874,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Chromosome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, gene)
+				chromosome, _ := MakeChromosome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{chromosome: NewOption(chromosome)})
 			}
-			params := OptimizationParams[int, Chromosome[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureChromosomeFitnessExpensive),
-				mutate:             NewOption(mutateChromosomeExpensive),
+				measure_fitness:    NewOption(measureGeneticMaterialFitnessExpensive),
+				mutate:             NewOption(mutateGeneticMaterialExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -848,14 +894,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneChromosomeOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneChromosomeOptimization failed with error: %v", err)
+				t.Fatalf("TuneGeneticMaterialOptimization failed with error: %v", err)
 			}
 
 			if n_goroutines < 1 {
-				t.Errorf("TuneChromosomeOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkChromosomeOptimization(params)
+				t.Errorf("TuneGeneticMaterialOptimization failed: expected 1, observed %d", n_goroutines)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -872,15 +918,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Genome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeGenome(opts)
-				initial_population = append(initial_population, gene)
+				genome, _ := MakeGenome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{genome: NewOption(genome)})
 			}
-			params := OptimizationParams[int, Genome[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGenomeFitness),
-				mutate:             NewOption(mutateGenome),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -892,14 +938,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneGenomeOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneGenomeOptimization failed with error: %v", err)
+				t.Fatalf("TuneGeneticMaterialOptimization failed with error: %v", err)
 			}
 
 			if n_goroutines > 1 {
-				t.Errorf("TuneGenomeOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkGenomeOptimization(params)
+				t.Errorf("TuneGeneticMaterialOptimization failed: expected 1, observed %d", n_goroutines)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
@@ -913,15 +959,15 @@ func TestTuneOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Genome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeGenome(opts)
-				initial_population = append(initial_population, gene)
+				genome, _ := MakeGenome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{genome: NewOption(genome)})
 			}
-			params := OptimizationParams[int, Genome[int]]{
+			params := GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGenomeFitnessExpensive),
-				mutate:             NewOption(mutateGenomeExpensive),
+				measure_fitness:    NewOption(measureGeneticMaterialFitnessExpensive),
+				mutate:             NewOption(mutateGeneticMaterialExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -933,14 +979,14 @@ func TestTuneOptimize(t *testing.T) {
 				}),
 			}
 
-			n_goroutines, err := TuneGenomeOptimization(params)
+			n_goroutines, err := TuneGeneticMaterialOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneGenomeOptimization failed with error: %v", err)
+				t.Fatalf("TuneGeneticMaterialOptimization failed with error: %v", err)
 			}
 
 			if n_goroutines < 1 {
-				t.Errorf("TuneGenomeOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkGenomeOptimization(params)
+				t.Errorf("TuneGeneticMaterialOptimization failed: expected 1, observed %d", n_goroutines)
+				res := benchmarkGeneticMaterialOptimization(params)
 				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
 				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
 			}
