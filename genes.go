@@ -166,11 +166,34 @@ func breakSequence[T comparable](sequence []T, separator []T) ([]T, []T) {
 	return []T{}, sequence
 }
 
+func GeneFromMap[T comparable](serialized map[string][]T) *Gene[T] {
+	g := Gene[T]{}
+	for k, v := range serialized {
+		g.Name = k
+		g.Bases = v
+	}
+
+	return &g
+}
+
 func GeneFromSequence[T comparable](sequence []T) *Gene[T] {
 	g := &Gene[T]{}
 	g.Name, _ = RandomName(4)
 	g.Bases = sequence
 	return g
+}
+
+func AlleleFromMap[T comparable](serialized map[string][]map[string][]T) *Allele[T] {
+	a := Allele[T]{}
+
+	for k1, v1 := range serialized {
+		a.Name = k1
+		for _, gene := range v1 {
+			a.Genes = append(a.Genes, GeneFromMap(gene))
+		}
+	}
+
+	return &a
 }
 
 func AlleleFromSequence[T comparable](sequence []T, separator []T) *Allele[T] {
@@ -195,6 +218,19 @@ func AlleleFromSequence[T comparable](sequence []T, separator []T) *Allele[T] {
 	return allele
 }
 
+func ChromosomeFromMap[T comparable](serialized map[string][]map[string][]map[string][]T) *Chromosome[T] {
+	c := Chromosome[T]{}
+
+	for k1, v1 := range serialized {
+		c.Name = k1
+		for _, chromosome := range v1 {
+			c.Alleles = append(c.Alleles, AlleleFromMap(chromosome))
+		}
+	}
+
+	return &c
+}
+
 func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromosome[T] {
 	var part []T
 	parts := make([][]T, 0)
@@ -216,6 +252,19 @@ func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromoso
 	allele := &Chromosome[T]{Alleles: alleles}
 	allele.Name, _ = RandomName(3)
 	return allele
+}
+
+func GenomeFromMap[T comparable](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T] {
+	g := Genome[T]{}
+
+	for k1, v1 := range serialized {
+		g.Name = k1
+		for _, chromosome := range v1 {
+			g.Chromosomes = append(g.Chromosomes, ChromosomeFromMap(chromosome))
+		}
+	}
+
+	return &g
 }
 
 func GenomeFromSequence[T comparable](sequence []T, separator []T) *Genome[T] {

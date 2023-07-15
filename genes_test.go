@@ -375,6 +375,16 @@ func TestGene(t *testing.T) {
 				t.Fatalf("Gene[int].ToMap failed: expected %v, observed %v", expected, observed)
 			}
 		}
+
+		deserialized := GeneFromMap(observed)
+
+		if g.Name != deserialized.Name {
+			t.Errorf("GeneFromMap[int] failed: expected Name='%s', observed %s", g.Name, deserialized.Name)
+		}
+
+		if !equal(g.Bases, deserialized.Bases) {
+			t.Errorf("GeneFromMap]int] failed: expected Bases=%v, observed %v", g.Bases, deserialized.Bases)
+		}
 	})
 
 	t.Run("MakeGene", func(t *testing.T) {
@@ -1024,6 +1034,52 @@ func TestGenome(t *testing.T) {
 
 		if len(maps) < 8 {
 			t.Fatalf("MakeGenome[int] failed to produce enough random sequences: expected >= 8, observed %d", len(maps))
+		}
+	})
+
+	t.Run("ToMap", func(t *testing.T) {
+		t.Parallel()
+		n := firstGenome()
+		observed := n.ToMap()
+
+		deserialized := GenomeFromMap(observed)
+
+		if n.Name != deserialized.Name {
+			t.Errorf("GenomeFromMap[int] failed: expected Name='%s', observed %s", n.Name, deserialized.Name)
+		}
+
+		if len(n.Chromosomes) != len(deserialized.Chromosomes) {
+			t.Fatalf("GenomeFromMap]int] failed: expected len(Chromosomes)=%d, observed %d", len(n.Chromosomes), len(deserialized.Chromosomes))
+		}
+
+		for i, c1 := range n.Chromosomes {
+			c2 := deserialized.Chromosomes[i]
+			if c1.Name != c2.Name {
+				t.Errorf("GenomeFromMap[int] failed: expected Chromosomes[x].Name='%s', observed %s", c1.Name, c2.Name)
+			}
+			if len(c1.Alleles) != len(c2.Alleles) {
+				t.Fatalf("GenomeFromMap]int] failed: expected len(Alleles)=%d, observed %d", len(c1.Alleles), len(c2.Alleles))
+			}
+
+			for k, a1 := range c1.Alleles {
+				a2 := c2.Alleles[k]
+				if a1.Name != a2.Name {
+					t.Errorf("GenomeFromMap[int] failed: expected Chromosomes[x].Alleles[y].Name='%s', observed %s", a1.Name, a2.Name)
+				}
+				if len(a1.Genes) != len(a2.Genes) {
+					t.Fatalf("GenomeFromMap]int] failed: expected len(Genes)=%d, observed %d", len(a1.Genes), len(a2.Genes))
+				}
+
+				for l, g1 := range a1.Genes {
+					g2 := a2.Genes[l]
+					if g1.Name != g2.Name {
+						t.Errorf("GenomeFromMap[int] failed: expected Chromosomes[x].Alleles[y].Name='%s', observed %s", g1.Name, g2.Name)
+					}
+					if !equal(g1.Bases, g2.Bases) {
+						t.Fatalf("GenomeFromMap]int] failed: expected Bases=%d, observed %d", len(g1.Bases), len(g2.Bases))
+					}
+				}
+			}
 		}
 	})
 
