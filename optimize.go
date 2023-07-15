@@ -94,7 +94,7 @@ func RandomChoices[T any](items []T, k int) []T {
 	return choices
 }
 
-func WeightedParents[T comparable](scores []ScoredCode[T]) []Code[T] {
+func weightedParents[T comparable](scores []ScoredCode[T]) []Code[T] {
 	parents := []Code[T]{}
 	weight := len(scores)
 	for i, l := 0, len(scores); i < l; i++ {
@@ -106,7 +106,7 @@ func WeightedParents[T comparable](scores []ScoredCode[T]) []Code[T] {
 	return parents
 }
 
-func WeightedRandomParents[T comparable](parents []Code[T]) (Code[T], Code[T]) {
+func weightedRandomParents[T comparable](parents []Code[T]) (Code[T], Code[T]) {
 	dad_and_mom := RandomChoices(parents, 2)
 	dad := dad_and_mom[0]
 	mom := dad_and_mom[1]
@@ -176,7 +176,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 	for generation_count < params.MaxIterations.val && best_fitness < params.FitnessTarget.val {
 		generation_count++
 		scores = scores[:params.ParentsPerGeneration.val]
-		parents := WeightedParents(scores)
+		parents := weightedParents(scores)
 		children_to_create := (params.PopulationSize.val - params.ParentsPerGeneration.val) / params.ParallelCount.val
 
 		for i := params.ParallelCount.val; i > 0; i-- {
@@ -190,7 +190,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 			go func(count int, parents []Code[T], work_done chan<- ScoredCode[T], done_signal chan<- bool) {
 				defer wg.Done()
 				for c := 0; c < count; c++ {
-					mom, dad := WeightedRandomParents(parents)
+					mom, dad := weightedRandomParents(parents)
 					child := dad.Recombine(mom, params.RecombinationOpts.val)
 					Mutate(child)
 					s := measure_fitness(child)
@@ -242,9 +242,9 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 	for generation_count < params.MaxIterations.val && best_fitness < params.FitnessTarget.val {
 		generation_count++
 		scores = scores[:params.ParentsPerGeneration.val]
-		parents := WeightedParents(scores)
+		parents := weightedParents(scores)
 		for len(scores) < params.PopulationSize.val {
-			mom, dad := WeightedRandomParents(parents)
+			mom, dad := weightedRandomParents(parents)
 			child := dad.Recombine(mom, params.RecombinationOpts.val)
 			Mutate(child)
 			s := measure_fitness(child)
