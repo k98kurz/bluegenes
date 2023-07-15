@@ -200,12 +200,12 @@ func TestOptimize(t *testing.T) {
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -245,12 +245,12 @@ func TestOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -293,12 +293,12 @@ func TestOptimize(t *testing.T) {
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -338,12 +338,12 @@ func TestOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -386,12 +386,12 @@ func TestOptimize(t *testing.T) {
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -431,12 +431,12 @@ func TestOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -479,12 +479,12 @@ func TestOptimize(t *testing.T) {
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -524,12 +524,12 @@ func TestOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
@@ -572,12 +572,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -613,12 +613,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCodeExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -656,12 +656,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -697,12 +697,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCodeExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -740,12 +740,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -781,12 +781,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCodeExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -825,12 +825,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCode),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 
@@ -866,12 +866,12 @@ func TestTuneOptimize(t *testing.T) {
 				mutate:             NewOption(mutateCodeExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
-					recombine_genes:       NewOption(true),
-					match_genes:           NewOption(false),
-					recombine_alleles:     NewOption(true),
-					match_alleles:         NewOption(false),
-					recombine_chromosomes: NewOption(true),
-					match_chromosomes:     NewOption(false),
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
 				}),
 			}
 

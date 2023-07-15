@@ -40,12 +40,12 @@ type MakeOptions[T comparable] struct {
 }
 
 type RecombineOptions struct {
-	recombine_genes       Option[bool]
-	match_genes           Option[bool]
-	recombine_alleles     Option[bool]
-	match_alleles         Option[bool]
-	recombine_chromosomes Option[bool]
-	match_chromosomes     Option[bool]
+	RecombineGenes       Option[bool]
+	MatchGenes           Option[bool]
+	RecombineAlleles     Option[bool]
+	MatchAlleles         Option[bool]
+	RecombineChromosomes Option[bool]
+	MatchChromosomes     Option[bool]
 }
 
 func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
