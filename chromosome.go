@@ -26,7 +26,7 @@ func (self *Chromosome[T]) Insert(index int, allele *Allele[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index > len(self.alleles) {
-		return IndexError{}
+		return indexError{}
 	}
 	self.alleles = append(self.alleles[:index+1], self.alleles[index:]...)
 	self.alleles[index] = allele
@@ -44,7 +44,7 @@ func (self *Chromosome[T]) Duplicate(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index > len(self.alleles) {
-		return IndexError{}
+		return indexError{}
 	}
 	gene := self.alleles[index].Copy()
 	alleles := append(self.alleles[:index], gene)
@@ -56,7 +56,7 @@ func (self *Chromosome[T]) Delete(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.alleles) {
-		return IndexError{}
+		return indexError{}
 	}
 	self.alleles = append(self.alleles[:index], self.alleles[index+1:]...)
 	return nil
@@ -66,7 +66,7 @@ func (self *Chromosome[T]) Substitute(index int, allele *Allele[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.alleles) {
-		return IndexError{}
+		return indexError{}
 	}
 	alleles := append(self.alleles[:index], allele)
 	self.alleles = append(alleles, self.alleles[index+1:]...)
@@ -94,7 +94,7 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 	}
 	for _, i := range indices {
 		if 0 > i || i >= min_size {
-			return another, IndexError{}
+			return another, indexError{}
 		}
 	}
 

@@ -86,7 +86,7 @@ func firstGenome() *Genome[int] {
 func rangeGene(start int, stop int, name ...string) (*Gene[int], error) {
 	g := &Gene[int]{name: "GnR"}
 	if start >= stop {
-		return g, Error{"start must be <= stop"}
+		return g, anError{"start must be <= stop"}
 	}
 	for i := start; i <= stop; i++ {
 		g.Append(i)
@@ -101,7 +101,7 @@ func rangeAllele(size int, start int, stop int, name ...string) (*Allele[int], e
 	a := &Allele[int]{name: "AlR"}
 
 	if size <= 0 {
-		return a, Error{"size must be > 0"}
+		return a, anError{"size must be > 0"}
 	}
 
 	for i := 0; i < size; i++ {
@@ -123,11 +123,11 @@ func rangeChromosome(size int, allele_size int, start int, stop int, name ...str
 	c := &Chromosome[int]{name: "ChR"}
 
 	if size <= 0 {
-		return c, Error{"size must be > 0"}
+		return c, anError{"size must be > 0"}
 	}
 
 	if allele_size <= 0 {
-		return c, Error{"allele_size must be > 0"}
+		return c, anError{"allele_size must be > 0"}
 	}
 
 	for i := 0; i < size; i++ {
@@ -149,15 +149,15 @@ func rangeGenome(size int, chromosome_size int, allele_size int, start int, stop
 	g := &Genome[int]{name: "GenomR"}
 
 	if size <= 0 {
-		return g, Error{"size must be > 0"}
+		return g, anError{"size must be > 0"}
 	}
 
 	if allele_size <= 0 {
-		return g, Error{"allele_size must be > 0"}
+		return g, anError{"allele_size must be > 0"}
 	}
 
 	if chromosome_size <= 0 {
-		return g, Error{"chromosome_size must be > 0"}
+		return g, anError{"chromosome_size must be > 0"}
 	}
 
 	for i := 0; i < size; i++ {

@@ -26,7 +26,7 @@ func (self *Gene[T]) Insert(index int, base T) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index > len(self.bases) {
-		return IndexError{}
+		return indexError{}
 	}
 	self.bases = append(self.bases[:index+1], self.bases[index:]...)
 	self.bases[index] = base
@@ -44,7 +44,7 @@ func (self *Gene[T]) InsertSequence(index int, sequence []T) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index > len(self.bases) {
-		return IndexError{}
+		return indexError{}
 	}
 	bases := append(self.bases[:index], sequence...)
 	self.bases = append(bases, self.bases[index:]...)
@@ -55,7 +55,7 @@ func (self *Gene[T]) Delete(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.bases) {
-		return IndexError{}
+		return indexError{}
 	}
 	self.bases = append(self.bases[:index], self.bases[index+1:]...)
 	return nil
@@ -65,10 +65,10 @@ func (self *Gene[T]) DeleteSequence(index int, size int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.bases) {
-		return IndexError{}
+		return indexError{}
 	}
 	if size == 0 {
-		return Error{"size must be >0"}
+		return anError{"size must be >0"}
 	}
 	self.bases = append(self.bases[:index], self.bases[index+size:]...)
 	return nil
@@ -78,7 +78,7 @@ func (self *Gene[T]) Substitute(index int, base T) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.bases) {
-		return IndexError{}
+		return indexError{}
 	}
 	bases := append(self.bases[:index], base)
 	self.bases = append(bases, self.bases[index+1:]...)
@@ -106,7 +106,7 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 	}
 	for _, i := range indices {
 		if 0 > i || i >= min_size {
-			return another, IndexError{}
+			return another, indexError{}
 		}
 	}
 

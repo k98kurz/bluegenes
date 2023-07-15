@@ -14,25 +14,25 @@ type Ordered interface {
 	Integer | Float | ~string
 }
 
-type Error struct {
+type anError struct {
 	message string
 }
 
-func (e Error) Error() string {
+func (e anError) Error() string {
 	return e.message
 }
 
-type IndexError struct{}
+type indexError struct{}
 
-func (e IndexError) Error() string {
+func (e indexError) Error() string {
 	return "index out of bounds"
 }
 
-type MissingParameterError struct {
+type missingParameterError struct {
 	parameter_name string
 }
 
-func (e MissingParameterError) Error() string {
+func (e missingParameterError) Error() string {
 	return fmt.Sprintf("missing parameter %s", e.parameter_name)
 }
 
@@ -58,7 +58,7 @@ func NewOption[T any](val ...T) Option[T] {
 func min[T Ordered](items ...T) (T, error) {
 	if len(items) < 1 {
 		var empty T
-		return empty, Error{"no items supplied"}
+		return empty, anError{"no items supplied"}
 	}
 	smallest := items[0]
 	for i := 1; i < len(items); i++ {
@@ -72,7 +72,7 @@ func min[T Ordered](items ...T) (T, error) {
 func max[T Ordered](items ...T) (T, error) {
 	if len(items) < 1 {
 		var empty T
-		return empty, IndexError{}
+		return empty, indexError{}
 	}
 	largest := items[0]
 	for i := 1; i < len(items); i++ {

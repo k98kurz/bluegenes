@@ -26,7 +26,7 @@ func (self *Genome[T]) Insert(index int, chromosome *Chromosome[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index > len(self.chromosomes) {
-		return IndexError{}
+		return indexError{}
 	}
 	self.chromosomes = append(self.chromosomes[:index+1], self.chromosomes[index:]...)
 	self.chromosomes[index] = chromosome
@@ -44,7 +44,7 @@ func (self *Genome[T]) Duplicate(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index > len(self.chromosomes) {
-		return IndexError{}
+		return indexError{}
 	}
 	chromosome := self.chromosomes[index].Copy()
 	chromosomes := append(self.chromosomes[:index], chromosome)
@@ -56,7 +56,7 @@ func (self *Genome[T]) Delete(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.chromosomes) {
-		return IndexError{}
+		return indexError{}
 	}
 	self.chromosomes = append(self.chromosomes[:index], self.chromosomes[index+1:]...)
 	return nil
@@ -66,7 +66,7 @@ func (self *Genome[T]) Substitute(index int, chromosome *Chromosome[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 	if 0 > index || index >= len(self.chromosomes) {
-		return IndexError{}
+		return indexError{}
 	}
 	chromosomes := append(self.chromosomes[:index], chromosome)
 	self.chromosomes = append(chromosomes, self.chromosomes[index+1:]...)
@@ -94,7 +94,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 	}
 	for _, i := range indices {
 		if 0 > i || i >= min_size {
-			return another, IndexError{}
+			return another, indexError{}
 		}
 	}
 

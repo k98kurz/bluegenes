@@ -177,16 +177,16 @@ func OptimizeGene[T comparable](params OptimizationParams[T, Gene[T]]) (int, []S
 	scores := []ScoredGene[T]{}
 
 	if !params.initial_population.ok() {
-		return generation_count, scores, MissingParameterError{"params.initial_population"}
+		return generation_count, scores, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return generation_count, scores, Error{"params.initial_population must have len > 0"}
+		return generation_count, scores, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return generation_count, scores, MissingParameterError{"params.measure_fitness"}
+		return generation_count, scores, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return generation_count, scores, MissingParameterError{"params.mutate"}
+		return generation_count, scores, missingParameterError{"params.mutate"}
 	}
 	if !params.max_iterations.ok() {
 		params.max_iterations.val = 1000
@@ -316,16 +316,16 @@ func OptimizeAllele[T comparable](params OptimizationParams[T, Allele[T]]) (int,
 	scores := []ScoredAllele[T]{}
 
 	if !params.initial_population.ok() {
-		return generation_count, scores, MissingParameterError{"params.initial_population"}
+		return generation_count, scores, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return generation_count, scores, Error{"params.initial_population must have len > 0"}
+		return generation_count, scores, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return generation_count, scores, MissingParameterError{"params.measure_fitness"}
+		return generation_count, scores, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return generation_count, scores, MissingParameterError{"params.mutate"}
+		return generation_count, scores, missingParameterError{"params.mutate"}
 	}
 	if !params.max_iterations.ok() {
 		params.max_iterations.val = 1000
@@ -455,16 +455,16 @@ func OptimizeChromosome[T comparable](params OptimizationParams[T, Chromosome[T]
 	scores := []ScoredChromosome[T]{}
 
 	if !params.initial_population.ok() {
-		return generation_count, scores, MissingParameterError{"params.initial_population"}
+		return generation_count, scores, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return generation_count, scores, Error{"params.initial_population must have len > 0"}
+		return generation_count, scores, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return generation_count, scores, MissingParameterError{"params.measure_fitness"}
+		return generation_count, scores, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return generation_count, scores, MissingParameterError{"params.mutate"}
+		return generation_count, scores, missingParameterError{"params.mutate"}
 	}
 	if !params.max_iterations.ok() {
 		params.max_iterations.val = 1000
@@ -594,16 +594,16 @@ func OptimizeGenome[T comparable](params OptimizationParams[T, Genome[T]]) (int,
 	scores := []ScoredGenome[T]{}
 
 	if !params.initial_population.ok() {
-		return generation_count, scores, MissingParameterError{"params.initial_population"}
+		return generation_count, scores, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return generation_count, scores, Error{"params.initial_population must have len > 0"}
+		return generation_count, scores, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return generation_count, scores, MissingParameterError{"params.measure_fitness"}
+		return generation_count, scores, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return generation_count, scores, MissingParameterError{"params.mutate"}
+		return generation_count, scores, missingParameterError{"params.mutate"}
 	}
 	if !params.max_iterations.ok() {
 		params.max_iterations.val = 1000
@@ -734,16 +734,16 @@ func TuneGeneOptimization[T comparable](params OptimizationParams[T, Gene[T]], m
 		max_goroutines = max_threads[0]
 	}
 	if !params.initial_population.ok() {
-		return n_goroutines, MissingParameterError{"params.initial_population"}
+		return n_goroutines, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return n_goroutines, Error{"params.initial_population must have len > 0"}
+		return n_goroutines, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return n_goroutines, MissingParameterError{"params.measure_fitness"}
+		return n_goroutines, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return n_goroutines, MissingParameterError{"params.mutate"}
+		return n_goroutines, missingParameterError{"params.mutate"}
 	}
 	if !params.population_size.ok() {
 		params.population_size.val = 100
@@ -825,16 +825,16 @@ func TuneAlleleOptimization[T comparable](params OptimizationParams[T, Allele[T]
 		max_goroutines = max_threads[0]
 	}
 	if !params.initial_population.ok() {
-		return n_goroutines, MissingParameterError{"params.initial_population"}
+		return n_goroutines, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return n_goroutines, Error{"params.initial_population must have len > 0"}
+		return n_goroutines, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return n_goroutines, MissingParameterError{"params.measure_fitness"}
+		return n_goroutines, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return n_goroutines, MissingParameterError{"params.mutate"}
+		return n_goroutines, missingParameterError{"params.mutate"}
 	}
 	if !params.population_size.ok() {
 		params.population_size.val = 100
@@ -916,16 +916,16 @@ func TuneChromosomeOptimization[T comparable](params OptimizationParams[T, Chrom
 		max_goroutines = max_threads[0]
 	}
 	if !params.initial_population.ok() {
-		return n_goroutines, MissingParameterError{"params.initial_population"}
+		return n_goroutines, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return n_goroutines, Error{"params.initial_population must have len > 0"}
+		return n_goroutines, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return n_goroutines, MissingParameterError{"params.measure_fitness"}
+		return n_goroutines, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return n_goroutines, MissingParameterError{"params.mutate"}
+		return n_goroutines, missingParameterError{"params.mutate"}
 	}
 	if !params.population_size.ok() {
 		params.population_size.val = 100
@@ -1007,16 +1007,16 @@ func TuneGenomeOptimization[T comparable](params OptimizationParams[T, Genome[T]
 		max_goroutines = max_threads[0]
 	}
 	if !params.initial_population.ok() {
-		return n_goroutines, MissingParameterError{"params.initial_population"}
+		return n_goroutines, missingParameterError{"params.initial_population"}
 	}
 	if len(params.initial_population.val) < 1 {
-		return n_goroutines, Error{"params.initial_population must have len > 0"}
+		return n_goroutines, anError{"params.initial_population must have len > 0"}
 	}
 	if !params.measure_fitness.ok() {
-		return n_goroutines, MissingParameterError{"params.measure_fitness"}
+		return n_goroutines, missingParameterError{"params.measure_fitness"}
 	}
 	if !params.mutate.ok() {
-		return n_goroutines, MissingParameterError{"params.mutate"}
+		return n_goroutines, missingParameterError{"params.mutate"}
 	}
 	if !params.population_size.ok() {
 		params.population_size.val = 100

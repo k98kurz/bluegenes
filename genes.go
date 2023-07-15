@@ -14,7 +14,7 @@ var alphanumerics = []rune{
 
 func RandomName(size int) (string, error) {
 	if size < 0 {
-		return "", Error{"size must be > 0"}
+		return "", anError{"size must be > 0"}
 	}
 
 	s := ""
@@ -51,10 +51,10 @@ type RecombineOptions struct {
 func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
 	g := &Gene[T]{}
 	if !options.n_bases.ok() {
-		return g, MissingParameterError{"options.n_bases"}
+		return g, missingParameterError{"options.n_bases"}
 	}
 	if !options.base_factory.ok() {
-		return g, MissingParameterError{"options.base_factory"}
+		return g, missingParameterError{"options.base_factory"}
 	}
 	for i := 0; i < int(options.n_bases.val); i++ {
 		b := options.base_factory.val()
@@ -71,13 +71,13 @@ func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
 func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
 	a := &Allele[T]{}
 	if !options.n_genes.ok() {
-		return a, MissingParameterError{"options.n_genes"}
+		return a, missingParameterError{"options.n_genes"}
 	}
 	if !options.n_bases.ok() {
-		return a, MissingParameterError{"options.n_bases"}
+		return a, missingParameterError{"options.n_bases"}
 	}
 	if !options.base_factory.ok() {
-		return a, MissingParameterError{"options.base_factory"}
+		return a, missingParameterError{"options.base_factory"}
 	}
 	for i := 0; i < int(options.n_genes.val); i++ {
 		g, err := MakeGene(options)
@@ -97,16 +97,16 @@ func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
 func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error) {
 	c := &Chromosome[T]{}
 	if !options.n_alleles.ok() {
-		return c, MissingParameterError{"options.n_alleles"}
+		return c, missingParameterError{"options.n_alleles"}
 	}
 	if !options.n_genes.ok() {
-		return c, MissingParameterError{"options.n_genes"}
+		return c, missingParameterError{"options.n_genes"}
 	}
 	if !options.n_bases.ok() {
-		return c, MissingParameterError{"options.n_bases"}
+		return c, missingParameterError{"options.n_bases"}
 	}
 	if !options.base_factory.ok() {
-		return c, MissingParameterError{"options.base_factory"}
+		return c, missingParameterError{"options.base_factory"}
 	}
 	for i := 0; i < int(options.n_alleles.val); i++ {
 		a, err := MakeAllele(options)
@@ -126,19 +126,19 @@ func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error
 func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error) {
 	g := &Genome[T]{}
 	if !options.n_chromosomes.ok() {
-		return g, MissingParameterError{"options.n_alleles"}
+		return g, missingParameterError{"options.n_alleles"}
 	}
 	if !options.n_alleles.ok() {
-		return g, MissingParameterError{"options.n_alleles"}
+		return g, missingParameterError{"options.n_alleles"}
 	}
 	if !options.n_genes.ok() {
-		return g, MissingParameterError{"options.n_genes"}
+		return g, missingParameterError{"options.n_genes"}
 	}
 	if !options.n_bases.ok() {
-		return g, MissingParameterError{"options.n_bases"}
+		return g, missingParameterError{"options.n_bases"}
 	}
 	if !options.base_factory.ok() {
-		return g, MissingParameterError{"options.base_factory"}
+		return g, missingParameterError{"options.base_factory"}
 	}
 	for i := 0; i < int(options.n_alleles.val); i++ {
 		c, err := MakeChromosome(options)
