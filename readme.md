@@ -77,6 +77,10 @@ go get
 
 There are no external dependencies.
 
+## Functions and types
+
+@todo
+
 ## Usage
 
 There are are least three ways to use this library: using an included
@@ -135,12 +139,18 @@ for i := 0; i < 10; i++ {
 	initial_population = append(initial_population, Code[int]{Gene: gene})
 }
 
+// optional: log each iteration
+log_iteration := func(gc int, pop []ScoredCode[int]) {
+	fmt.Printf("generation %d, best score %f\n", gc, pop[0].Score)
+}
+
 // set up parameters
 params := OptimizationParams[int]{
 	InitialPopulation: gobluegenes.NewOption(initial_population),
 	MeasureFitness:    gobluegenes.NewOption(measureFitness),
-	Mutate:             gobluegenes.NewOption(mutateGene),
+	Mutate:            gobluegenes.NewOption(mutateGene),
 	MaxIterations:     gobluegenes.NewOption(1000),
+	IterationHook:     log_iteration,
 }
 
 // optional: tune the optimization; not necessary for this trivial example
@@ -238,6 +248,9 @@ The following tests are included:
         - parallel
         - sequential
     - Genome
+        - parallel
+        - sequential
+    - IterationHook
         - parallel
         - sequential
 - TestTuneOptimize
