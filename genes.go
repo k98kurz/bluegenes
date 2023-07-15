@@ -14,7 +14,7 @@ var alphanumerics = []rune{
 
 func RandomName(size int) (string, error) {
 	if size < 0 {
-		return "", anError{"size must be > 0"}
+		return "", anError{"size Must be > 0"}
 	}
 
 	s := ""

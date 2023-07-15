@@ -9,12 +9,12 @@ import (
 type Allele[T comparable] struct {
 	Name  string
 	Genes []*Gene[T]
-	mu    sync.RWMutex
+	Mu    sync.RWMutex
 }
 
 func (a *Allele[T]) Copy() *Allele[T] {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
+	a.Mu.RLock()
+	defer a.Mu.RUnlock()
 	var another Allele[T]
 	another.Name = a.Name
 	another.Genes = make([]*Gene[T], len(a.Genes))
@@ -23,8 +23,8 @@ func (a *Allele[T]) Copy() *Allele[T] {
 }
 
 func (self *Allele[T]) Insert(index int, gene *Gene[T]) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index > len(self.Genes) {
 		return indexError{}
 	}
@@ -34,15 +34,15 @@ func (self *Allele[T]) Insert(index int, gene *Gene[T]) error {
 }
 
 func (self *Allele[T]) Append(gene *Gene[T]) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	self.Genes = append(self.Genes[:], gene)
 	return nil
 }
 
 func (self *Allele[T]) Duplicate(index int) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index > len(self.Genes) {
 		return indexError{}
 	}
@@ -53,8 +53,8 @@ func (self *Allele[T]) Duplicate(index int) error {
 }
 
 func (self *Allele[T]) Delete(index int) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.Genes) {
 		return indexError{}
 	}
@@ -63,8 +63,8 @@ func (self *Allele[T]) Delete(index int) error {
 }
 
 func (self *Allele[T]) Substitute(index int, gene *Gene[T]) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.Genes) {
 		return indexError{}
 	}
@@ -74,10 +74,10 @@ func (self *Allele[T]) Substitute(index int, gene *Gene[T]) error {
 }
 
 func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options RecombineOptions) (*Allele[T], error) {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
-	other.mu.RLock()
-	defer other.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
+	other.Mu.RLock()
+	defer other.Mu.RUnlock()
 	another := &Allele[T]{}
 	min_size, _ := min(len(self.Genes), len(other.Genes))
 	max_size, _ := max(len(self.Genes), len(other.Genes))
@@ -144,8 +144,8 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 }
 
 func (self *Allele[T]) ToMap() map[string][]map[string][]T {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]T)
 	serialized[self.Name] = []map[string][]T{}
 	for _, gene := range self.Genes {
@@ -155,8 +155,8 @@ func (self *Allele[T]) ToMap() map[string][]map[string][]T {
 }
 
 func (self *Allele[T]) Sequence(separator []T) []T {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 

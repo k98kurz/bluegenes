@@ -13,7 +13,7 @@ genetic algorithms.
 ## Overview
 
 The general concept with a genetic algorithm is to evaluate a population for
-fitness (an arbitrary metric) and use fitness, recombination, and mutation to
+fitness (an arbitrary metric) and use fitness, recombination, and Mutation to
 drive evolution toward a more optimal result. In this simple library, the
 genetic material is a sequence of `T comparable`, and it is organized into the
 following hierarchy:
@@ -25,7 +25,7 @@ following hierarchy:
 - `type Code[T comparable] interface` is a constraint type for the above
 
 Each of these classes has a `Name string` attribute to identify the genetic
-material and a `mu sync.RWMutex` for safe concurrent operations. The names can
+material and a `Mu sync.RWMutex` for safe concurrent operations. The names can
 be generated as random alphanumeric strings if not supplied in the relevant
 instantiation statements.
 
@@ -62,7 +62,7 @@ There are also four functions available for tuning optimizations given an
 These estimate how many goroutines should be used for optimization by
 benchmarking the three types of operations and calculating a ratio. (In some
 cases, the overhead from spinning up goroutines, heap allocation, copying data
-into callstacks, and using `sync` features is more costly than the `mutate` and
+into callstacks, and using `sync` features is more costly than the `Mutate` and
 `measure_fitness` functions, in which case a sequential optimization will be
 faster than running the optimization in parallel.)
 
@@ -90,7 +90,7 @@ There are no external dependencies.
 
 There are are least three ways to use this library: using an included
 optimization function, using a custom optimization function, and using the
-genetic classes as the basis for an artificial life simulation. Below is a
+genetic classes as the basis for an artificial life siMulation. Below is a
 trivial example of how to do the first of these three.
 
 ```go
@@ -113,9 +113,9 @@ func measureFitness(gene *Gene[int]) float64 {
 }
 
 // Mutates a gene at random. Passed as parameter to OptimizeGene.
-func mutateGene(gene *Gene[int]) {
-	gene.mu.Lock()
-	defer gene.mu.Unlock()
+func MutateGene(gene *Gene[int]) {
+	gene.Mu.Lock()
+	defer gene.Mu.Unlock()
 	for i := 0; i < len(gene.bases); i++ {
 		val := rand.Float64()
 		if val <= 0.1 {
@@ -146,10 +146,10 @@ for i := 0; i < 10; i++ {
 
 // set up parameters
 params := OptimizationParams[int, gobluegenes.Gene[int]]{
-	initial_population: gobluegenes.NewOption(initial_population),
+	InitialPopulation: gobluegenes.NewOption(initial_population),
 	measure_fitness:    gobluegenes.NewOption(MeasureGeneFitness),
-	mutate:             gobluegenes.NewOption(MutateGene),
-	max_iterations:     gobluegenes.NewOption(1000),
+	Mutate:             gobluegenes.NewOption(MutateGene),
+	MaxIterations:     gobluegenes.NewOption(1000),
 }
 
 // optional: tune the optimization; not necessary for this trivial example
@@ -158,7 +158,7 @@ parallel_size, err := gobluegenes.TuneGeneOptimization(params)
 if err != nil {
     fmt.Println("error encountered during tuning:", err)
 } else if parallel_size > 1 {
-    params.parallel_count = gobluegenes.NewOption(parallel_size)
+    params.ParallelCount = gobluegenes.NewOption(parallel_size)
 }
 
 // run optimization
@@ -175,7 +175,7 @@ fmt.Printf("the best result had sum=%d compared to target=%d", sum, target)
 fmt.Println(best_fitness.gene)
 ```
 
-Creating custom fitness functions or artificial life simulations is left as an
+Creating custom fitness functions or artificial life siMulations is left as an
 exercise to the reader.
 
 ## Testing

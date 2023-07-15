@@ -8,9 +8,9 @@ import (
 
 var target = 12345
 
-func mutateGene(gene *Gene[int]) {
-	gene.mu.Lock()
-	defer gene.mu.Unlock()
+func MutateGene(gene *Gene[int]) {
+	gene.Mu.Lock()
+	defer gene.Mu.Unlock()
 	for i := 0; i < len(gene.bases); i++ {
 		val := rand.Float64()
 		if val <= 0.1 {
@@ -25,55 +25,55 @@ func mutateGene(gene *Gene[int]) {
 	}
 }
 
-func mutateAllele(allele *Allele[int]) {
-	allele.mu.Lock()
-	defer allele.mu.Unlock()
+func MutateAllele(allele *Allele[int]) {
+	allele.Mu.Lock()
+	defer allele.Mu.Unlock()
 	for _, gene := range allele.Genes {
-		mutateGene(gene)
+		MutateGene(gene)
 	}
 }
 
-func mutateChromosome(chromosome *Chromosome[int]) {
-	chromosome.mu.Lock()
-	defer chromosome.mu.Unlock()
+func MutateChromosome(chromosome *Chromosome[int]) {
+	chromosome.Mu.Lock()
+	defer chromosome.Mu.Unlock()
 	for _, allele := range chromosome.alleles {
-		mutateAllele(allele)
+		MutateAllele(allele)
 	}
 }
 
-func mutateGenome(genome *Genome[int]) {
-	genome.mu.Lock()
-	defer genome.mu.Unlock()
+func MutateGenome(genome *Genome[int]) {
+	genome.Mu.Lock()
+	defer genome.Mu.Unlock()
 	for _, chromosome := range genome.chromosomes {
-		mutateChromosome(chromosome)
+		MutateChromosome(chromosome)
 	}
 }
 
-func mutateCode(code Code[int]) {
+func MutateCode(code Code[int]) {
 	if code.Gene.ok() {
-		mutateGene(code.Gene.val)
+		MutateGene(code.Gene.val)
 	}
 	if code.allele.ok() {
-		mutateAllele(code.allele.val)
+		MutateAllele(code.allele.val)
 	}
 	if code.chromosome.ok() {
-		mutateChromosome(code.chromosome.val)
+		MutateChromosome(code.chromosome.val)
 	}
 	if code.genome.ok() {
-		mutateGenome(code.genome.val)
+		MutateGenome(code.genome.val)
 	}
 }
 
 func measureGeneFitness(gene *Gene[int]) float64 {
-	gene.mu.RLock()
-	defer gene.mu.RUnlock()
+	gene.Mu.RLock()
+	defer gene.Mu.RUnlock()
 	total := reduce(gene.bases, func(a int, b int) int { return a + b })
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
 func measureAlleleFitness(allele *Allele[int]) float64 {
-	allele.mu.RLock()
-	defer allele.mu.RUnlock()
+	allele.Mu.RLock()
+	defer allele.Mu.RUnlock()
 	total := 0
 	for _, gene := range allele.Genes {
 		total += reduce(gene.bases, func(a int, b int) int { return a + b })
@@ -82,8 +82,8 @@ func measureAlleleFitness(allele *Allele[int]) float64 {
 }
 
 func measureChromosomeFitness(chromosome *Chromosome[int]) float64 {
-	chromosome.mu.RLock()
-	defer chromosome.mu.RUnlock()
+	chromosome.Mu.RLock()
+	defer chromosome.Mu.RUnlock()
 	total := 0
 	for _, allele := range chromosome.alleles {
 		for _, gene := range allele.Genes {
@@ -94,8 +94,8 @@ func measureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 }
 
 func measureGenomeFitness(genome *Genome[int]) float64 {
-	genome.mu.RLock()
-	defer genome.mu.RUnlock()
+	genome.Mu.RLock()
+	defer genome.Mu.RUnlock()
 	total := 0
 	for _, chromosome := range genome.chromosomes {
 		for _, allele := range chromosome.alleles {
@@ -130,22 +130,22 @@ func measureCodeFitness(code Code[int]) float64 {
 	return fitness / float64(fitness_count)
 }
 
-func mutateCodeExpensive(code Code[int]) {
+func MutateCodeExpensive(code Code[int]) {
 	val := 42.0
 	for i := 0; i < 1000; i++ {
 		val /= 6.9
 	}
 	if code.Gene.ok() {
-		mutateGene(code.Gene.val)
+		MutateGene(code.Gene.val)
 	}
 	if code.allele.ok() {
-		mutateAllele(code.allele.val)
+		MutateAllele(code.allele.val)
 	}
 	if code.chromosome.ok() {
-		mutateChromosome(code.chromosome.val)
+		MutateChromosome(code.chromosome.val)
 	}
 	if code.genome.ok() {
-		mutateGenome(code.genome.val)
+		MutateGenome(code.genome.val)
 	}
 }
 
@@ -194,12 +194,12 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				parallel_count:     NewOption(10),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				ParallelCount:     NewOption(10),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -214,7 +214,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Gene[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Gene[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -240,11 +240,11 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -259,7 +259,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Gene[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Gene[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -287,12 +287,12 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				parallel_count:     NewOption(10),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				ParallelCount:     NewOption(10),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -307,7 +307,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Allele[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Allele[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -333,11 +333,11 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -352,7 +352,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Allele[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Allele[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -380,12 +380,12 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				parallel_count:     NewOption(10),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				ParallelCount:     NewOption(10),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -400,7 +400,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Chromosome[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Chromosome[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -426,11 +426,11 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -445,7 +445,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Chromosome[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Chromosome[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -473,12 +473,12 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				parallel_count:     NewOption(10),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				ParallelCount:     NewOption(10),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -493,7 +493,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Genome[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Genome[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -519,11 +519,11 @@ func TestOptimize(t *testing.T) {
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -538,7 +538,7 @@ func TestOptimize(t *testing.T) {
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Genome[int] exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Genome[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
@@ -567,11 +567,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -588,9 +588,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines > 1 {
 				t.Errorf("TuneGeneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 		t.Run("expensive", func(t *testing.T) {
@@ -608,11 +608,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitnessExpensive),
-				mutate:             NewOption(mutateCodeExpensive),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitnessExpensive),
+				Mutate:            NewOption(MutateCodeExpensive),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -629,9 +629,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines < 1 {
 				t.Errorf("TuneGeneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 	})
@@ -651,11 +651,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{allele: NewOption(allele)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -672,9 +672,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines > 1 {
 				t.Errorf("TuneOptimization for Allele[int] failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 		t.Run("expensive", func(t *testing.T) {
@@ -692,11 +692,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{allele: NewOption(allele)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitnessExpensive),
-				mutate:             NewOption(mutateCodeExpensive),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitnessExpensive),
+				Mutate:            NewOption(MutateCodeExpensive),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -713,9 +713,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines < 1 {
 				t.Errorf("TuneOptimization for Allele[int] failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 	})
@@ -735,11 +735,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{chromosome: NewOption(chromosome)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -756,9 +756,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines > 1 {
 				t.Errorf("TuneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 		t.Run("expensive", func(t *testing.T) {
@@ -776,11 +776,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{chromosome: NewOption(chromosome)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitnessExpensive),
-				mutate:             NewOption(mutateCodeExpensive),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitnessExpensive),
+				Mutate:            NewOption(MutateCodeExpensive),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -797,9 +797,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines < 1 {
 				t.Errorf("TuneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 	})
@@ -820,11 +820,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{genome: NewOption(genome)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitness),
-				mutate:             NewOption(mutateCode),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -841,9 +841,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines > 1 {
 				t.Errorf("TuneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 		t.Run("expensive", func(t *testing.T) {
@@ -861,11 +861,11 @@ func TestTuneOptimize(t *testing.T) {
 				initial_population = append(initial_population, Code[int]{genome: NewOption(genome)})
 			}
 			params := OptimizationParams[int]{
-				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureCodeFitnessExpensive),
-				mutate:             NewOption(mutateCodeExpensive),
-				max_iterations:     NewOption(1000),
-				recombination_opts: NewOption(RecombineOptions{
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitnessExpensive),
+				Mutate:            NewOption(MutateCodeExpensive),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
 					RecombineAlleles:     NewOption(true),
@@ -882,9 +882,9 @@ func TestTuneOptimize(t *testing.T) {
 
 			if n_goroutines < 1 {
 				t.Errorf("TuneOptimization failed: expected 1, observed %d", n_goroutines)
-				res := benchmarkOptimization(params)
-				t.Errorf("mutate: %d, fitness: %d, copy: %d\n", res.cost_of_mutate, res.cost_of_measure_fitness, res.cost_of_copy)
-				t.Errorf("(mutate+fitness)/copy: %d\n", (res.cost_of_mutate+res.cost_of_measure_fitness)/res.cost_of_copy)
+				res := BenchmarkOptimization(params)
+				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
+				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
 			}
 		})
 	})

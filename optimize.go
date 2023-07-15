@@ -54,25 +54,25 @@ func (self Code[T]) copy() Code[T] {
 }
 
 type OptimizationParams[T comparable] struct {
-	measure_fitness        Option[func(Code[T]) float64]
-	mutate                 Option[func(Code[T])]
-	initial_population     Option[[]Code[T]]
-	max_iterations         Option[int]
-	population_size        Option[int]
-	parents_per_generation Option[int]
-	fitness_target         Option[float64]
-	recombination_opts     Option[RecombineOptions]
-	parallel_count         Option[int]
+	MeasureFitness       Option[func(Code[T]) float64]
+	Mutate               Option[func(Code[T])]
+	InitialPopulation    Option[[]Code[T]]
+	MaxIterations        Option[int]
+	PopulationSize       Option[int]
+	ParentsPerGeneration Option[int]
+	FitnessTarget        Option[float64]
+	RecombinationOpts    Option[RecombineOptions]
+	ParallelCount        Option[int]
 }
 
-type OptimizationGenchmarkResults struct {
-	cost_of_copy            int
-	cost_of_mutate          int
-	cost_of_measure_fitness int
+type BenchmarkResult struct {
+	CostOfCopy           int
+	CostOfMutate         int
+	CostOfMeasureFitness int
 }
 
 type ScoredCode[T comparable] struct {
-	code  Code[T]
+	Code  Code[T]
 	score float64
 }
 
@@ -97,7 +97,7 @@ func WeightedParents[T comparable](scores []ScoredCode[T]) []Code[T] {
 	weight := len(scores)
 	for i, l := 0, len(scores); i < l; i++ {
 		for j := 0; j < weight; j++ {
-			parents = append(parents, scores[i].code)
+			parents = append(parents, scores[i].Code)
 		}
 		weight--
 	}
@@ -118,38 +118,38 @@ func Optimize[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T],
 	generation_count := 0
 	scores := []ScoredCode[T]{}
 
-	if !params.initial_population.ok() {
-		return generation_count, scores, missingParameterError{"params.initial_population"}
+	if !params.InitialPopulation.ok() {
+		return generation_count, scores, missingParameterError{"params.InitialPopulation"}
 	}
-	if len(params.initial_population.val) < 1 {
-		return generation_count, scores, anError{"params.initial_population must have len > 0"}
+	if len(params.InitialPopulation.val) < 1 {
+		return generation_count, scores, anError{"params.InitialPopulation Must have len > 0"}
 	}
-	if !params.measure_fitness.ok() {
-		return generation_count, scores, missingParameterError{"params.measure_fitness"}
+	if !params.MeasureFitness.ok() {
+		return generation_count, scores, missingParameterError{"params.MeasureFitness"}
 	}
-	if !params.mutate.ok() {
-		return generation_count, scores, missingParameterError{"params.mutate"}
+	if !params.Mutate.ok() {
+		return generation_count, scores, missingParameterError{"params.Mutate"}
 	}
-	if !params.max_iterations.ok() {
-		params.max_iterations.val = 1000
+	if !params.MaxIterations.ok() {
+		params.MaxIterations.val = 1000
 	}
-	if !params.population_size.ok() {
-		params.population_size.val = 100
+	if !params.PopulationSize.ok() {
+		params.PopulationSize.val = 100
 	}
-	if !params.parents_per_generation.ok() {
-		params.parents_per_generation.val = 10
+	if !params.ParentsPerGeneration.ok() {
+		params.ParentsPerGeneration.val = 10
 	}
-	if !params.fitness_target.ok() {
-		params.fitness_target.val = float64(1.0)
+	if !params.FitnessTarget.ok() {
+		params.FitnessTarget.val = float64(0.99)
 	}
-	if params.parallel_count.ok() && params.population_size.val/params.parallel_count.val < 1 {
-		params.population_size.val *= 2
+	if params.ParallelCount.ok() && params.PopulationSize.val/params.ParallelCount.val < 1 {
+		params.PopulationSize.val *= 2
 	}
-	if params.parents_per_generation.val > params.population_size.val {
-		params.parents_per_generation.val = params.population_size.val / 10
+	if params.ParentsPerGeneration.val > params.PopulationSize.val {
+		params.ParentsPerGeneration.val = params.PopulationSize.val / 10
 	}
 
-	if params.parallel_count.ok() {
+	if params.ParallelCount.ok() {
 		return optimizeInParallel(params)
 	} else {
 		return optimizeSequentially(params)
@@ -160,39 +160,39 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 	generation_count := 0
 	scores := []ScoredCode[T]{}
 	var wg sync.WaitGroup
-	work_done := make(chan ScoredCode[T], params.population_size.val+10)
-	done_signal := make(chan bool, params.parallel_count.val)
-	measure_fitness := params.measure_fitness.val
-	mutate := params.mutate.val
-	for _, genome := range params.initial_population.val {
-		score := ScoredCode[T]{code: genome, score: measure_fitness(genome)}
+	work_done := make(chan ScoredCode[T], params.PopulationSize.val+10)
+	done_signal := make(chan bool, params.ParallelCount.val)
+	measure_fitness := params.MeasureFitness.val
+	Mutate := params.Mutate.val
+	for _, code := range params.InitialPopulation.val {
+		score := ScoredCode[T]{Code: code, score: measure_fitness(code)}
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
 	best_fitness := scores[0].score
 
-	for generation_count < params.max_iterations.val && best_fitness < params.fitness_target.val {
+	for generation_count < params.MaxIterations.val && best_fitness < params.FitnessTarget.val {
 		generation_count++
-		scores = scores[:params.parents_per_generation.val]
+		scores = scores[:params.ParentsPerGeneration.val]
 		parents := WeightedParents(scores)
-		children_to_create := (params.population_size.val - params.parents_per_generation.val) / params.parallel_count.val
+		children_to_create := (params.PopulationSize.val - params.ParentsPerGeneration.val) / params.ParallelCount.val
 
-		for i := params.parallel_count.val; i > 0; i-- {
+		for i := params.ParallelCount.val; i > 0; i-- {
 			diff := 0
 			if i == 1 {
-				diff = params.population_size.val
-				diff -= params.parallel_count.val * children_to_create
-				diff -= params.parents_per_generation.val
+				diff = params.PopulationSize.val
+				diff -= params.ParallelCount.val * children_to_create
+				diff -= params.ParentsPerGeneration.val
 			}
 			wg.Add(1)
 			go func(count int, parents []Code[T], work_done chan<- ScoredCode[T], done_signal chan<- bool) {
 				defer wg.Done()
 				for c := 0; c < count; c++ {
 					mom, dad := WeightedRandomParents(parents)
-					child := dad.Recombine(mom, params.recombination_opts.val)
-					mutate(child)
+					child := dad.Recombine(mom, params.RecombinationOpts.val)
+					Mutate(child)
 					s := measure_fitness(child)
-					work_done <- ScoredCode[T]{code: child, score: s}
+					work_done <- ScoredCode[T]{Code: child, score: s}
 				}
 				done_signal <- true
 			}(children_to_create+diff, parents, work_done, done_signal)
@@ -202,7 +202,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 		go func() {
 			defer wg.Done()
 			finished := 0
-			for finished < params.parallel_count.val {
+			for finished < params.ParallelCount.val {
 				select {
 				case child := <-work_done:
 					scores = append(scores, child)
@@ -224,25 +224,25 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T], error) {
 	generation_count := 0
 	scores := []ScoredCode[T]{}
-	measure_fitness := params.measure_fitness.val
-	mutate := params.mutate.val
-	for _, code := range params.initial_population.val {
-		score := ScoredCode[T]{code: code, score: measure_fitness(code)}
+	measure_fitness := params.MeasureFitness.val
+	Mutate := params.Mutate.val
+	for _, code := range params.InitialPopulation.val {
+		score := ScoredCode[T]{Code: code, score: measure_fitness(code)}
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
 	best_fitness := scores[0].score
 
-	for generation_count < params.max_iterations.val && best_fitness < params.fitness_target.val {
+	for generation_count < params.MaxIterations.val && best_fitness < params.FitnessTarget.val {
 		generation_count++
-		scores = scores[:params.parents_per_generation.val]
+		scores = scores[:params.ParentsPerGeneration.val]
 		parents := WeightedParents(scores)
-		for len(scores) < params.population_size.val {
+		for len(scores) < params.PopulationSize.val {
 			mom, dad := WeightedRandomParents(parents)
-			child := dad.Recombine(mom, params.recombination_opts.val)
-			mutate(child)
+			child := dad.Recombine(mom, params.RecombinationOpts.val)
+			Mutate(child)
 			s := measure_fitness(child)
-			scores = append(scores, ScoredCode[T]{code: child, score: s})
+			scores = append(scores, ScoredCode[T]{Code: child, score: s})
 		}
 
 		sortScoredCodes(scores)
@@ -258,28 +258,28 @@ func TuneOptimization[T comparable](params OptimizationParams[T], max_threads ..
 	if len(max_threads) > 0 {
 		max_goroutines = max_threads[0]
 	}
-	if !params.initial_population.ok() {
-		return n_goroutines, missingParameterError{"params.initial_population"}
+	if !params.InitialPopulation.ok() {
+		return n_goroutines, missingParameterError{"params.InitialPopulation"}
 	}
-	if len(params.initial_population.val) < 1 {
-		return n_goroutines, anError{"params.initial_population must have len > 0"}
+	if len(params.InitialPopulation.val) < 1 {
+		return n_goroutines, anError{"params.InitialPopulation Must have len > 0"}
 	}
-	if !params.measure_fitness.ok() {
-		return n_goroutines, missingParameterError{"params.measure_fitness"}
+	if !params.MeasureFitness.ok() {
+		return n_goroutines, missingParameterError{"params.MeasureFitness"}
 	}
-	if !params.mutate.ok() {
-		return n_goroutines, missingParameterError{"params.mutate"}
+	if !params.Mutate.ok() {
+		return n_goroutines, missingParameterError{"params.Mutate"}
 	}
-	if !params.population_size.ok() {
-		params.population_size.val = 100
+	if !params.PopulationSize.ok() {
+		params.PopulationSize.val = 100
 	}
-	if !params.parents_per_generation.ok() {
-		params.parents_per_generation.val = 10
+	if !params.ParentsPerGeneration.ok() {
+		params.ParentsPerGeneration.val = 10
 	}
 
-	res := benchmarkOptimization(params)
+	res := BenchmarkOptimization(params)
 
-	n_goroutines = int(math.Log2(float64((res.cost_of_mutate + res.cost_of_measure_fitness) / res.cost_of_copy)))
+	n_goroutines = int(math.Log2(float64((res.CostOfMutate + res.CostOfMeasureFitness) / res.CostOfCopy)))
 
 	if n_goroutines > max_goroutines {
 		n_goroutines = max_goroutines
@@ -290,26 +290,26 @@ func TuneOptimization[T comparable](params OptimizationParams[T], max_threads ..
 	return n_goroutines, nil
 }
 
-func benchmarkOptimization[T comparable](params OptimizationParams[T]) OptimizationGenchmarkResults {
+func BenchmarkOptimization[T comparable](params OptimizationParams[T]) BenchmarkResult {
 	res := testing.Benchmark(func(b *testing.B) {
-		gm := params.initial_population.val[0]
+		gm := params.InitialPopulation.val[0]
 		for i := 0; i < b.N; i++ {
-			params.mutate.val(gm)
+			params.Mutate.val(gm)
 		}
 	})
-	cost_of_mutate := res.T / time.Duration(res.N)
+	CostOfMutate := res.T / time.Duration(res.N)
 
 	res = testing.Benchmark(func(b *testing.B) {
-		gm := params.initial_population.val[0]
+		gm := params.InitialPopulation.val[0]
 		for i := 0; i < b.N; i++ {
-			params.measure_fitness.val(gm)
+			params.MeasureFitness.val(gm)
 		}
 	})
-	cost_of_measure_fitness := res.T / time.Duration(res.N)
+	CostOfMeasureFitness := res.T / time.Duration(res.N)
 
 	res = testing.Benchmark(func(b *testing.B) {
 		var bg sync.WaitGroup
-		gm := params.initial_population.val[0]
+		gm := params.InitialPopulation.val[0]
 		buffered_chan1 := make(chan Code[T], 1)
 		buffered_chan2 := make(chan bool, 1)
 		for i := 0; i < b.N; i++ {
@@ -334,11 +334,11 @@ func benchmarkOptimization[T comparable](params OptimizationParams[T]) Optimizat
 			bg.Wait()
 		}
 	})
-	cost_of_copy := res.T / time.Duration(res.N)
+	CostOfCopy := res.T / time.Duration(res.N)
 
-	return OptimizationGenchmarkResults{
-		cost_of_mutate:          int(cost_of_mutate),
-		cost_of_measure_fitness: int(cost_of_measure_fitness),
-		cost_of_copy:            int(cost_of_copy),
+	return BenchmarkResult{
+		CostOfMutate:         int(CostOfMutate),
+		CostOfMeasureFitness: int(CostOfMeasureFitness),
+		CostOfCopy:           int(CostOfCopy),
 	}
 }

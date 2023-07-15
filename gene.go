@@ -9,12 +9,12 @@ import (
 type Gene[T comparable] struct {
 	Name  string
 	bases []T
-	mu    sync.RWMutex
+	Mu    sync.RWMutex
 }
 
 func (self *Gene[T]) Copy() *Gene[T] {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
 	var another Gene[T]
 	another.Name = self.Name
 	another.bases = make([]T, len(self.bases))
@@ -23,8 +23,8 @@ func (self *Gene[T]) Copy() *Gene[T] {
 }
 
 func (self *Gene[T]) Insert(index int, base T) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index > len(self.bases) {
 		return indexError{}
 	}
@@ -34,15 +34,15 @@ func (self *Gene[T]) Insert(index int, base T) error {
 }
 
 func (self *Gene[T]) Append(base T) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	self.bases = append(self.bases[:], base)
 	return nil
 }
 
 func (self *Gene[T]) InsertSequence(index int, sequence []T) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index > len(self.bases) {
 		return indexError{}
 	}
@@ -52,8 +52,8 @@ func (self *Gene[T]) InsertSequence(index int, sequence []T) error {
 }
 
 func (self *Gene[T]) Delete(index int) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.bases) {
 		return indexError{}
 	}
@@ -62,21 +62,21 @@ func (self *Gene[T]) Delete(index int) error {
 }
 
 func (self *Gene[T]) DeleteSequence(index int, size int) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.bases) {
 		return indexError{}
 	}
 	if size == 0 {
-		return anError{"size must be >0"}
+		return anError{"size Must be >0"}
 	}
 	self.bases = append(self.bases[:index], self.bases[index+size:]...)
 	return nil
 }
 
 func (self *Gene[T]) Substitute(index int, base T) error {
-	self.mu.Lock()
-	defer self.mu.Unlock()
+	self.Mu.Lock()
+	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.bases) {
 		return indexError{}
 	}
@@ -86,10 +86,10 @@ func (self *Gene[T]) Substitute(index int, base T) error {
 }
 
 func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineOptions) (*Gene[T], error) {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
-	other.mu.RLock()
-	defer other.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
+	other.Mu.RLock()
+	defer other.Mu.RUnlock()
 	another := &Gene[T]{}
 	min_size, _ := min(len(self.bases), len(other.bases))
 	max_size, _ := max(len(self.bases), len(other.bases))
@@ -138,15 +138,15 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 }
 
 func (self *Gene[T]) ToMap() map[string][]T {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
 	serialized := make(map[string][]T)
 	serialized[self.Name] = self.bases
 	return serialized
 }
 
 func (self *Gene[T]) Sequence() []T {
-	self.mu.RLock()
-	defer self.mu.RUnlock()
+	self.Mu.RLock()
+	defer self.Mu.RUnlock()
 	return self.bases
 }
