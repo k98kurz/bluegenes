@@ -79,12 +79,12 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 	other.mu.RLock()
 	defer other.mu.RUnlock()
 	another := &Genome[T]{}
-	min_size, _ := Min(len(self.chromosomes), len(other.chromosomes))
-	max_size, _ := Max(len(self.chromosomes), len(other.chromosomes))
+	min_size, _ := min(len(self.chromosomes), len(other.chromosomes))
+	max_size, _ := max(len(self.chromosomes), len(other.chromosomes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
-		swaps, _ := Max(RandomInt(0, int(max_swaps)), 1)
+		swaps, _ := max(RandomInt(0, int(max_swaps)), 1)
 		idxSet := NewSet[int]()
 		for i := 0; i < swaps; i++ {
 			idxSet.Add(RandomInt(0, min_size))
@@ -100,7 +100,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 
 	name := self.name
 	if name != other.name {
-		name_size, err := Min(len(name), len(other.name))
+		name_size, err := min(len(name), len(other.name))
 		if err != nil {
 			return another, err
 		}

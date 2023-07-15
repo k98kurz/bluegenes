@@ -136,7 +136,7 @@ func TestSets(t *testing.T) {
 }
 
 func TestHelperFunctions(t *testing.T) {
-	t.Run("Min", func(t *testing.T) {
+	t.Run("min", func(t *testing.T) {
 		t.Parallel()
 		for i := 11; i < 1111; i++ {
 			ints := []int{}
@@ -144,16 +144,16 @@ func TestHelperFunctions(t *testing.T) {
 				ints = append(ints, k)
 			}
 
-			observed, err := Min(ints...)
+			observed, err := min(ints...)
 			if err != nil {
-				t.Errorf("Min failed with the following error: %v", err.Error())
+				t.Errorf("min failed with the following error: %v", err.Error())
 			}
 			if observed != 1 {
-				t.Errorf("Min failed; got %d, expected 1", observed)
+				t.Errorf("min failed; got %d, expected 1", observed)
 			}
 		}
 	})
-	t.Run("Max", func(t *testing.T) {
+	t.Run("max", func(t *testing.T) {
 		t.Parallel()
 		for i := 11; i < 1111; i++ {
 			ints := []int{}
@@ -161,12 +161,12 @@ func TestHelperFunctions(t *testing.T) {
 				ints = append(ints, k)
 			}
 
-			observed, err := Max(ints...)
+			observed, err := max(ints...)
 			if err != nil {
-				t.Errorf("Max failed with the following error: %v", err.Error())
+				t.Errorf("max failed with the following error: %v", err.Error())
 			}
 			if observed != i {
-				t.Errorf("Max failed; got %d, expected %d", observed, i)
+				t.Errorf("max failed; got %d, expected %d", observed, i)
 			}
 		}
 	})

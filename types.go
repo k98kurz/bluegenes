@@ -55,7 +55,7 @@ func NewOption[T any](val ...T) Option[T] {
 	return Option[T]{isSet: false}
 }
 
-func Min[T Ordered](items ...T) (T, error) {
+func min[T Ordered](items ...T) (T, error) {
 	if len(items) < 1 {
 		var empty T
 		return empty, Error{"no items supplied"}
@@ -69,7 +69,7 @@ func Min[T Ordered](items ...T) (T, error) {
 	return smallest, nil
 }
 
-func Max[T Ordered](items ...T) (T, error) {
+func max[T Ordered](items ...T) (T, error) {
 	if len(items) < 1 {
 		var empty T
 		return empty, IndexError{}
@@ -83,7 +83,7 @@ func Max[T Ordered](items ...T) (T, error) {
 	return largest, nil
 }
 
-func Reduce[T comparable](items []T, reduce func(T, T) T) T {
+func reduce[T comparable](items []T, reduce func(T, T) T) T {
 	var carry T
 	for _, item := range items {
 		carry = reduce(item, carry)

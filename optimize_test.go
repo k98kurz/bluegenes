@@ -52,7 +52,7 @@ func MutateGenome(genome *Genome[int]) {
 func MeasureGeneFitness(gene *Gene[int]) float64 {
 	gene.mu.RLock()
 	defer gene.mu.RUnlock()
-	total := Reduce(gene.bases, func(a int, b int) int { return a + b })
+	total := reduce(gene.bases, func(a int, b int) int { return a + b })
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
@@ -61,7 +61,7 @@ func MeasureAlleleFitness(allele *Allele[int]) float64 {
 	defer allele.mu.RUnlock()
 	total := 0
 	for _, gene := range allele.genes {
-		total += Reduce(gene.bases, func(a int, b int) int { return a + b })
+		total += reduce(gene.bases, func(a int, b int) int { return a + b })
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
@@ -72,7 +72,7 @@ func MeasureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 	total := 0
 	for _, allele := range chromosome.alleles {
 		for _, gene := range allele.genes {
-			total += Reduce(gene.bases, func(a int, b int) int { return a + b })
+			total += reduce(gene.bases, func(a int, b int) int { return a + b })
 		}
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
@@ -85,7 +85,7 @@ func MeasureGenomeFitness(genome *Genome[int]) float64 {
 	for _, chromosome := range genome.chromosomes {
 		for _, allele := range chromosome.alleles {
 			for _, gene := range allele.genes {
-				total += Reduce(gene.bases, func(a int, b int) int { return a + b })
+				total += reduce(gene.bases, func(a int, b int) int { return a + b })
 			}
 		}
 	}
@@ -144,7 +144,7 @@ func MeasureGeneFitnessExpensive(gene *Gene[int]) float64 {
 	for i := 0; i < 1000; i++ {
 		val /= 6.9
 	}
-	total := Reduce(gene.bases, func(a int, b int) int { return a + b })
+	total := reduce(gene.bases, func(a int, b int) int { return a + b })
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
@@ -157,7 +157,7 @@ func MeasureAlleleFitnessExpensive(allele *Allele[int]) float64 {
 	}
 	total := 0
 	for _, gene := range allele.genes {
-		total += Reduce(gene.bases, func(a int, b int) int { return a + b })
+		total += reduce(gene.bases, func(a int, b int) int { return a + b })
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
@@ -172,7 +172,7 @@ func MeasureChromosomeFitnessExpensive(chromosome *Chromosome[int]) float64 {
 	total := 0
 	for _, allele := range chromosome.alleles {
 		for _, gene := range allele.genes {
-			total += Reduce(gene.bases, func(a int, b int) int { return a + b })
+			total += reduce(gene.bases, func(a int, b int) int { return a + b })
 		}
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
@@ -189,7 +189,7 @@ func MeasureGenomeFitnessExpensive(genome *Genome[int]) float64 {
 	for _, chromosome := range genome.chromosomes {
 		for _, allele := range chromosome.alleles {
 			for _, gene := range allele.genes {
-				total += Reduce(gene.bases, func(a int, b int) int { return a + b })
+				total += reduce(gene.bases, func(a int, b int) int { return a + b })
 			}
 		}
 	}

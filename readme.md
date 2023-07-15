@@ -98,7 +98,7 @@ package main
 
 import (
     "math"
-    bluegenes "github.com/k98kurz/bluegenes-go"
+    "github.com/k98kurz/gobluegenes"
 )
 
 target := 123456
@@ -119,53 +119,56 @@ func mutateGene(gene *Gene[int]) {
 	for i := 0; i < len(gene.bases); i++ {
 		val := rand.Float64()
 		if val <= 0.1 {
-			gene.bases[i] /= bluegenes.RandomInt(1, 3)
+			gene.bases[i] /= gobluegenes.RandomInt(1, 3)
 		} else if val <= 0.2 {
-			gene.bases[i] *= bluegenes.RandomInt(1, 3)
+			gene.bases[i] *= gobluegenes.RandomInt(1, 3)
 		} else if val <= 0.6 {
-			gene.bases[i] += bluegenes.RandomInt(0, 11)
+			gene.bases[i] += gobluegenes.RandomInt(0, 11)
 		} else {
-			gene.bases[i] -= bluegenes.RandomInt(0, 11)
+			gene.bases[i] -= gobluegenes.RandomInt(0, 11)
 		}
 	}
 }
 
 // Gene initialization options
 base_factory := func() int { return RandomInt(-10, 10) }
-opts := bluegenes.MakeOptions[int]{
-	n_bases:      bluegenes.NewOption(uint(5)),
-	base_factory: bluegenes.NewOption(base_factory),
+opts := gobluegenes.MakeOptions[int]{
+	n_bases:      gobluegenes.NewOption(uint(5)),
+	base_factory: gobluegenes.NewOption(base_factory),
 }
 
 // create initial population
-initial_population := []*bluegenes.Gene[int]{}
+initial_population := []*gobluegenes.Gene[int]{}
 for i := 0; i < 10; i++ {
-	gene, _ := bluegenes.MakeGene(opts)
+	gene, _ := gobluegenes.MakeGene(opts)
 	initial_population = append(initial_population, gene)
 }
 
 // set up parameters
-params := OptimizationParams[int, bluegenes.Gene[int]]{
-	initial_population: bluegenes.NewOption(initial_population),
-	measure_fitness:    bluegenes.NewOption(MeasureGeneFitness),
-	mutate:             bluegenes.NewOption(MutateGene),
-	max_iterations:     bluegenes.NewOption(1000),
+params := OptimizationParams[int, gobluegenes.Gene[int]]{
+	initial_population: gobluegenes.NewOption(initial_population),
+	measure_fitness:    gobluegenes.NewOption(MeasureGeneFitness),
+	mutate:             gobluegenes.NewOption(MutateGene),
+	max_iterations:     gobluegenes.NewOption(1000),
 }
 
 // optional: tune the optimization; not necessary for this trivial example
-parallel_size, err := bluegenes.TuneGeneOptimization(params)
+parallel_size, err := gobluegenes.TuneGeneOptimization(params)
 
 if err != nil {
     fmt.Println("error encountered during tuning:", err)
 } else if parallel_size > 1 {
-    params.parallel_count = bluegenes.NewOption(parallel_size)
+    params.parallel_count = gobluegenes.NewOption(parallel_size)
 }
 
 // run optimization
-n_iterations, final_population, err := bluegenes.OptimizeGene(params)
+n_iterations, final_population, err := gobluegenes.OptimizeGene(params)
 
 best_fitness := final_population[0]
-sum := types.Reduce(best_fitness.gene, func(a int, b int){return a+b})
+sum := 0
+for _, b := range best_fitness.gene{
+	sum += b
+}
 
 fmt.Printf("%d generations passed", n_iterations)
 fmt.Printf("the best result had sum=%d compared to target=%d", sum, target)
