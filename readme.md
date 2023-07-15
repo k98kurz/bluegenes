@@ -22,12 +22,12 @@ following hierarchy:
 - `type Allele[T comparable] struct` contains `Gene[T]`s
 - `type Chromosome[T comparable] struct` contains `Allele[T]`s
 - `type Genome[T comparable] struct` contains `Chromosome[T]`s
-- `type Code[T comparable] interface` is a constraint type for the above
+- `type Code[T comparable] struct` is a wrapper that contains an `Option` for each above type
 
-Each of these classes has a `Name string` attribute to identify the genetic
-material and a `Mu sync.RWMutex` for safe concurrent operations. The names can
-be generated as random alphanumeric strings if not supplied in the relevant
-instantiation statements.
+Each of these classes except `Code[T]` has a `Name string` attribute to identify
+the genetic material and a `Mu sync.RWMutex` for safe concurrent operations. The
+names can be generated as random alphanumeric strings if not supplied in the
+relevant instantiation statements.
 
 There are functions for creating randomized instances of each:
 
@@ -36,35 +36,26 @@ There are functions for creating randomized instances of each:
 - `func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error)`
 - `func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error)`
 
-And there are four types that combine a piece of genetic material with a fitness
-score:
+And there is a type that combines a `Code[T]` with a fitness score `float64`:
 
-- `type ScoredGene[T comparable] struct`
-- `type ScoredAllele[T comparable] struct`
-- `type ScoredChromosome[T comparable] struct`
-- `type ScoredGenome[T comparable] struct`
+- `type ScoredCode[T comparable] struct`
 
-There are four optimization functions available currently:
+There is one optimization function available currently:
 
-- `func OptimizeGene[T comparable](params OptimizationParams[T, Gene[T]]) (int, []ScoredGene[T], error)`
-- `func OptimizeAllele[T comparable](params OptimizationParams[T, Allele[T]]) (int, []ScoredAllele[T], error)`
-- `func OptimizeChromosome[T comparable](params OptimizationParams[T, Chromosome[T]]) (int, []ScoredChromosome[T], error)`
-- `func OptimizeGenome[T comparable](params OptimizationParams[T, Genome[T]]) (int, []ScoredGenome[T], error)`
+- `func Optimize[T comparable](params OptimizationParams[T]]) (int, []ScoredCode[T], error)`
 
-There are also four functions available for tuning optimizations given an
+And there are two functions available for tuning optimizations given an
 `OptimizationParams` instance:
 
-- `func TuneGeneOptimization[T comparable](params OptimizationParams[T, Gene[T]], max_threads ...int) (int, error)`
-- `func TuneAlleleOptimization[T comparable](params OptimizationParams[T, Allele[T]], max_threads ...int) (int, error)`
-- `func TuneChromosomeOptimization[T comparable](params OptimizationParams[T, Chromosome[T]], max_threads ...int) (int, error)`
-- `func TuneGenomeOptimization[T comparable](params OptimizationParams[T, Genome[T]], max_threads ...int) (int, error)`
+- `func TuneOptimization[T comparable](params OptimizationParams[T, Gene[T]], max_threads ...int) (int, error)`
+- `func BenchmarkOptimization[T comparable](params OptimizationParams[T]) BenchmarkResult`
 
-These estimate how many goroutines should be used for optimization by
-benchmarking the three types of operations and calculating a ratio. (In some
-cases, the overhead from spinning up goroutines, heap allocation, copying data
-into callstacks, and using `sync` features is more costly than the `Mutate` and
-`measure_fitness` functions, in which case a sequential optimization will be
-faster than running the optimization in parallel.)
+The first uses the second to estimate how many goroutines should be used for
+optimization by benchmarking the three types of operations and calculating a
+ratio. (In some cases, the overhead from spinning up goroutines, heap allocation,
+copying data into callstacks, and using synchronization features is more costly
+than the `Mutate` and `MeasureFitness` functions, in which case a sequential
+optimization will be faster than running the optimization in parallel.)
 
 To handle parameters, the following classes and functions are available:
 
@@ -72,7 +63,7 @@ To handle parameters, the following classes and functions are available:
 - `func NewOption[T any](val ...T) Option[T]`
 - `type MakeOptions[T comparable] struct`
 - `type RecombineOptions struct`
-- `type OptimizationParams[T comparable, C Code[T]] struct`
+- `type OptimizationParams[T comparable] struct`
 
 See the [Usage](#Usage) section below for more details.
 
@@ -113,7 +104,7 @@ func measureFitness(gene *Gene[int]) float64 {
 }
 
 // Mutates a gene at random. Passed as parameter to OptimizeGene.
-func MutateGene(gene *Gene[int]) {
+func mutateGene(gene *Gene[int]) {
 	gene.Mu.Lock()
 	defer gene.Mu.Unlock()
 	for i := 0; i < len(gene.bases); i++ {
@@ -138,22 +129,22 @@ opts := gobluegenes.MakeOptions[int]{
 }
 
 // create initial population
-initial_population := []*gobluegenes.Gene[int]{}
+initial_population := []gobluegenes.Code[int]{}
 for i := 0; i < 10; i++ {
 	gene, _ := gobluegenes.MakeGene(opts)
-	initial_population = append(initial_population, gene)
+	initial_population = append(initial_population, Code[int]{Gene: gene})
 }
 
 // set up parameters
-params := OptimizationParams[int, gobluegenes.Gene[int]]{
+params := OptimizationParams[int]{
 	InitialPopulation: gobluegenes.NewOption(initial_population),
-	measure_fitness:    gobluegenes.NewOption(MeasureGeneFitness),
-	Mutate:             gobluegenes.NewOption(MutateGene),
+	MeasureFitness:    gobluegenes.NewOption(measureFitness),
+	Mutate:             gobluegenes.NewOption(mutateGene),
 	MaxIterations:     gobluegenes.NewOption(1000),
 }
 
 // optional: tune the optimization; not necessary for this trivial example
-parallel_size, err := gobluegenes.TuneGeneOptimization(params)
+parallel_size, err := gobluegenes.TuneOptimization(params)
 
 if err != nil {
     fmt.Println("error encountered during tuning:", err)
@@ -162,7 +153,7 @@ if err != nil {
 }
 
 // run optimization
-n_iterations, final_population, err := gobluegenes.OptimizeGene(params)
+n_iterations, final_population, err := gobluegenes.Optimize(params)
 
 best_fitness := final_population[0]
 sum := 0
@@ -263,9 +254,9 @@ The following tests are included:
         - cheap
         - expensive
 
-The `TestTuneOptimize/*` tests take the most time as the `Tune[C]Optimization`
-functions each run three benchmarks. To run an individual test, use the
-following:
+The `TestTuneOptimize/*` tests take the most time as the `TuneOptimization`
+function runs three benchmarks for each of 8 tests. To run an individual test,
+use the following:
 
 ```bash
 go test -run Test/Name -v
