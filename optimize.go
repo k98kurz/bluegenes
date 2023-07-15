@@ -138,20 +138,26 @@ func Optimize[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T],
 	if !params.PopulationSize.ok() {
 		params.PopulationSize.val = 100
 	}
+	if params.PopulationSize.val < 3 {
+		return generation_count, scores, anError{"params.PopulationSize must be at least 3"}
+	}
 	if !params.ParentsPerGeneration.ok() {
 		params.ParentsPerGeneration.val = 10
 	}
 	if !params.FitnessTarget.ok() {
 		params.FitnessTarget.val = float64(0.99)
 	}
-	if params.ParallelCount.ok() && params.PopulationSize.val/params.ParallelCount.val < 1 {
-		params.PopulationSize.val *= 2
-	}
 	if params.ParentsPerGeneration.val > params.PopulationSize.val {
 		params.ParentsPerGeneration.val = params.PopulationSize.val / 10
 	}
+	if params.ParentsPerGeneration.val < 2 {
+		params.ParentsPerGeneration.val = 2
+	}
+	if params.ParallelCount.ok() && params.PopulationSize.val/params.ParallelCount.val < 1 {
+		params.ParallelCount.val = params.PopulationSize.val / 2
+	}
 
-	if params.ParallelCount.ok() {
+	if params.ParallelCount.ok() && params.ParallelCount.val > 1 {
 		return optimizeInParallel(params)
 	} else {
 		return optimizeSequentially(params)
