@@ -36,7 +36,7 @@ There are functions for creating randomized instances of each:
 - `func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error)`
 - `func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error)`
 
-And there is a type that combines a `Code[T]` with a fitness score `float64`:
+And there is a type that combines a `Code[T]` with a fitness Score `float64`:
 
 - `type ScoredCode[T comparable] struct`
 
@@ -97,7 +97,7 @@ target := 123456
 // Produces a fitness score. Passed as parameter to OptimizeGene.
 func measureFitness(gene *Gene[int]) float64 {
     sum := 0
-    for _, b := gene.bases {
+    for _, b := gene.Bases {
         sum += b
     }
     return 1.0 / (1.0 + math.Abs(float64(sum - target)))
@@ -107,16 +107,16 @@ func measureFitness(gene *Gene[int]) float64 {
 func mutateGene(gene *Gene[int]) {
 	gene.Mu.Lock()
 	defer gene.Mu.Unlock()
-	for i := 0; i < len(gene.bases); i++ {
+	for i := 0; i < len(gene.Bases); i++ {
 		val := rand.Float64()
 		if val <= 0.1 {
-			gene.bases[i] /= gobluegenes.RandomInt(1, 3)
+			gene.Bases[i] /= gobluegenes.RandomInt(1, 3)
 		} else if val <= 0.2 {
-			gene.bases[i] *= gobluegenes.RandomInt(1, 3)
+			gene.Bases[i] *= gobluegenes.RandomInt(1, 3)
 		} else if val <= 0.6 {
-			gene.bases[i] += gobluegenes.RandomInt(0, 11)
+			gene.Bases[i] += gobluegenes.RandomInt(0, 11)
 		} else {
-			gene.bases[i] -= gobluegenes.RandomInt(0, 11)
+			gene.Bases[i] -= gobluegenes.RandomInt(0, 11)
 		}
 	}
 }

@@ -10,9 +10,9 @@ import (
 
 type Code[T comparable] struct {
 	Gene       Option[*Gene[T]]
-	allele     Option[*Allele[T]]
-	chromosome Option[*Chromosome[T]]
-	genome     Option[*Genome[T]]
+	Allele     Option[*Allele[T]]
+	Chromosome Option[*Chromosome[T]]
+	Genome     Option[*Genome[T]]
 }
 
 func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T] {
@@ -21,17 +21,17 @@ func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions)
 		child.Gene.val, _ = self.Gene.val.Recombine(other.Gene.val, []int{}, recombinationOpts)
 		child.Gene.isSet = true
 	}
-	if self.allele.ok() && other.allele.ok() {
-		child.allele.val, _ = self.allele.val.Recombine(other.allele.val, []int{}, recombinationOpts)
-		child.allele.isSet = true
+	if self.Allele.ok() && other.Allele.ok() {
+		child.Allele.val, _ = self.Allele.val.Recombine(other.Allele.val, []int{}, recombinationOpts)
+		child.Allele.isSet = true
 	}
-	if self.chromosome.ok() && other.chromosome.ok() {
-		child.chromosome.val, _ = self.chromosome.val.Recombine(other.chromosome.val, []int{}, recombinationOpts)
-		child.chromosome.isSet = true
+	if self.Chromosome.ok() && other.Chromosome.ok() {
+		child.Chromosome.val, _ = self.Chromosome.val.Recombine(other.Chromosome.val, []int{}, recombinationOpts)
+		child.Chromosome.isSet = true
 	}
-	if self.genome.ok() && other.genome.ok() {
-		child.genome.val, _ = self.genome.val.Recombine(other.genome.val, []int{}, recombinationOpts)
-		child.genome.isSet = true
+	if self.Genome.ok() && other.Genome.ok() {
+		child.Genome.val, _ = self.Genome.val.Recombine(other.Genome.val, []int{}, recombinationOpts)
+		child.Genome.isSet = true
 	}
 	return child
 }
@@ -41,14 +41,14 @@ func (self Code[T]) copy() Code[T] {
 	if self.Gene.ok() {
 		gm.Gene = NewOption(self.Gene.val.Copy())
 	}
-	if self.allele.ok() {
-		gm.allele = NewOption(self.allele.val.Copy())
+	if self.Allele.ok() {
+		gm.Allele = NewOption(self.Allele.val.Copy())
 	}
-	if self.chromosome.ok() {
-		gm.chromosome = NewOption(self.chromosome.val.Copy())
+	if self.Chromosome.ok() {
+		gm.Chromosome = NewOption(self.Chromosome.val.Copy())
 	}
-	if self.genome.ok() {
-		gm.genome = NewOption(self.genome.val.Copy())
+	if self.Genome.ok() {
+		gm.Genome = NewOption(self.Genome.val.Copy())
 	}
 	return gm
 }
@@ -73,12 +73,12 @@ type BenchmarkResult struct {
 
 type ScoredCode[T comparable] struct {
 	Code  Code[T]
-	score float64
+	Score float64
 }
 
 func sortScoredCodes[T comparable](scores []ScoredCode[T]) {
 	sort.SliceStable(scores, func(i, j int) bool {
-		return scores[i].score > scores[j].score
+		return scores[i].Score > scores[j].Score
 	})
 }
 
@@ -165,11 +165,11 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 	measure_fitness := params.MeasureFitness.val
 	Mutate := params.Mutate.val
 	for _, code := range params.InitialPopulation.val {
-		score := ScoredCode[T]{Code: code, score: measure_fitness(code)}
+		score := ScoredCode[T]{Code: code, Score: measure_fitness(code)}
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
-	best_fitness := scores[0].score
+	best_fitness := scores[0].Score
 
 	for generation_count < params.MaxIterations.val && best_fitness < params.FitnessTarget.val {
 		generation_count++
@@ -192,7 +192,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 					child := dad.Recombine(mom, params.RecombinationOpts.val)
 					Mutate(child)
 					s := measure_fitness(child)
-					work_done <- ScoredCode[T]{Code: child, score: s}
+					work_done <- ScoredCode[T]{Code: child, Score: s}
 				}
 				done_signal <- true
 			}(children_to_create+diff, parents, work_done, done_signal)
@@ -215,7 +215,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 
 		wg.Wait()
 		sortScoredCodes(scores)
-		best_fitness = scores[0].score
+		best_fitness = scores[0].Score
 	}
 
 	return generation_count, scores, nil
@@ -227,11 +227,11 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 	measure_fitness := params.MeasureFitness.val
 	Mutate := params.Mutate.val
 	for _, code := range params.InitialPopulation.val {
-		score := ScoredCode[T]{Code: code, score: measure_fitness(code)}
+		score := ScoredCode[T]{Code: code, Score: measure_fitness(code)}
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
-	best_fitness := scores[0].score
+	best_fitness := scores[0].Score
 
 	for generation_count < params.MaxIterations.val && best_fitness < params.FitnessTarget.val {
 		generation_count++
@@ -242,11 +242,11 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 			child := dad.Recombine(mom, params.RecombinationOpts.val)
 			Mutate(child)
 			s := measure_fitness(child)
-			scores = append(scores, ScoredCode[T]{Code: child, score: s})
+			scores = append(scores, ScoredCode[T]{Code: child, Score: s})
 		}
 
 		sortScoredCodes(scores)
-		best_fitness = scores[0].score
+		best_fitness = scores[0].Score
 	}
 
 	return generation_count, scores, nil

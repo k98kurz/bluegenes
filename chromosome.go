@@ -8,7 +8,7 @@ import (
 
 type Chromosome[T comparable] struct {
 	Name    string
-	alleles []*Allele[T]
+	Alleles []*Allele[T]
 	Mu      sync.RWMutex
 }
 
@@ -17,59 +17,59 @@ func (c *Chromosome[T]) Copy() *Chromosome[T] {
 	defer c.Mu.RUnlock()
 	var another Chromosome[T]
 	another.Name = c.Name
-	another.alleles = make([]*Allele[T], len(c.alleles))
-	copy(another.alleles, c.alleles)
+	another.Alleles = make([]*Allele[T], len(c.Alleles))
+	copy(another.Alleles, c.Alleles)
 	return &another
 }
 
 func (self *Chromosome[T]) Insert(index int, allele *Allele[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.alleles) {
+	if 0 > index || index > len(self.Alleles) {
 		return indexError{}
 	}
-	self.alleles = append(self.alleles[:index+1], self.alleles[index:]...)
-	self.alleles[index] = allele
+	self.Alleles = append(self.Alleles[:index+1], self.Alleles[index:]...)
+	self.Alleles[index] = allele
 	return nil
 }
 
 func (self *Chromosome[T]) Append(allele *Allele[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	self.alleles = append(self.alleles[:], allele)
+	self.Alleles = append(self.Alleles[:], allele)
 	return nil
 }
 
 func (self *Chromosome[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.alleles) {
+	if 0 > index || index > len(self.Alleles) {
 		return indexError{}
 	}
-	allele := self.alleles[index].Copy()
-	alleles := append(self.alleles[:index], allele)
-	self.alleles = append(alleles, self.alleles[index:]...)
+	allele := self.Alleles[index].Copy()
+	alleles := append(self.Alleles[:index], allele)
+	self.Alleles = append(alleles, self.Alleles[index:]...)
 	return nil
 }
 
 func (self *Chromosome[T]) Delete(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.alleles) {
+	if 0 > index || index >= len(self.Alleles) {
 		return indexError{}
 	}
-	self.alleles = append(self.alleles[:index], self.alleles[index+1:]...)
+	self.Alleles = append(self.Alleles[:index], self.Alleles[index+1:]...)
 	return nil
 }
 
 func (self *Chromosome[T]) Substitute(index int, allele *Allele[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.alleles) {
+	if 0 > index || index >= len(self.Alleles) {
 		return indexError{}
 	}
-	alleles := append(self.alleles[:index], allele)
-	self.alleles = append(alleles, self.alleles[index+1:]...)
+	alleles := append(self.Alleles[:index], allele)
+	self.Alleles = append(alleles, self.Alleles[index+1:]...)
 	return nil
 }
 
@@ -79,8 +79,8 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
 	another := &Chromosome[T]{}
-	min_size, _ := min(len(self.alleles), len(other.alleles))
-	max_size, _ := max(len(self.alleles), len(other.alleles))
+	min_size, _ := min(len(self.Alleles), len(other.Alleles))
+	max_size, _ := max(len(self.Alleles), len(other.Alleles))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -111,16 +111,16 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 
 	alleles := make([]*Allele[T], max_size)
 	other_alleles := make([]*Allele[T], max_size)
-	copy(alleles, self.alleles)
-	copy(other_alleles, other.alleles)
+	copy(alleles, self.Alleles)
+	copy(other_alleles, other.Alleles)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			alleles = append(alleles[:i], self.alleles[i:]...)
-			other_alleles = append(other_alleles[:i], other.alleles[i:]...)
+			alleles = append(alleles[:i], self.Alleles[i:]...)
+			other_alleles = append(other_alleles[:i], other.Alleles[i:]...)
 		} else {
-			alleles = append(alleles[:i], other.alleles[i:]...)
-			other_alleles = append(other_alleles[:i], self.alleles[i:]...)
+			alleles = append(alleles[:i], other.Alleles[i:]...)
+			other_alleles = append(other_alleles[:i], self.Alleles[i:]...)
 		}
 		swapped = !swapped
 	}
@@ -139,7 +139,7 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 		}
 	}
 
-	another.alleles = alleles
+	another.Alleles = alleles
 	return another, nil
 }
 
@@ -148,7 +148,7 @@ func (self *Chromosome[T]) ToMap() map[string][]map[string][]map[string][]T {
 	defer self.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]T)
 	serialized[self.Name] = []map[string][]map[string][]T{}
-	for _, allele := range self.alleles {
+	for _, allele := range self.Alleles {
 		serialized[self.Name] = append(serialized[self.Name], allele.ToMap())
 	}
 	return serialized
@@ -160,7 +160,7 @@ func (self *Chromosome[T]) Sequence(separator []T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, allele := range self.alleles {
+	for _, allele := range self.Alleles {
 		parts = append(parts, allele.Sequence(separator))
 	}
 

@@ -11,16 +11,16 @@ var target = 12345
 func MutateGene(gene *Gene[int]) {
 	gene.Mu.Lock()
 	defer gene.Mu.Unlock()
-	for i := 0; i < len(gene.bases); i++ {
+	for i := 0; i < len(gene.Bases); i++ {
 		val := rand.Float64()
 		if val <= 0.1 {
-			gene.bases[i] /= RandomInt(1, 3)
+			gene.Bases[i] /= RandomInt(1, 3)
 		} else if val <= 0.2 {
-			gene.bases[i] *= RandomInt(1, 3)
+			gene.Bases[i] *= RandomInt(1, 3)
 		} else if val <= 0.6 {
-			gene.bases[i] += RandomInt(0, 11)
+			gene.Bases[i] += RandomInt(0, 11)
 		} else {
-			gene.bases[i] -= RandomInt(0, 11)
+			gene.Bases[i] -= RandomInt(0, 11)
 		}
 	}
 }
@@ -36,7 +36,7 @@ func MutateAllele(allele *Allele[int]) {
 func MutateChromosome(chromosome *Chromosome[int]) {
 	chromosome.Mu.Lock()
 	defer chromosome.Mu.Unlock()
-	for _, allele := range chromosome.alleles {
+	for _, allele := range chromosome.Alleles {
 		MutateAllele(allele)
 	}
 }
@@ -44,7 +44,7 @@ func MutateChromosome(chromosome *Chromosome[int]) {
 func MutateGenome(genome *Genome[int]) {
 	genome.Mu.Lock()
 	defer genome.Mu.Unlock()
-	for _, chromosome := range genome.chromosomes {
+	for _, chromosome := range genome.Chromosomes {
 		MutateChromosome(chromosome)
 	}
 }
@@ -53,21 +53,21 @@ func MutateCode(code Code[int]) {
 	if code.Gene.ok() {
 		MutateGene(code.Gene.val)
 	}
-	if code.allele.ok() {
-		MutateAllele(code.allele.val)
+	if code.Allele.ok() {
+		MutateAllele(code.Allele.val)
 	}
-	if code.chromosome.ok() {
-		MutateChromosome(code.chromosome.val)
+	if code.Chromosome.ok() {
+		MutateChromosome(code.Chromosome.val)
 	}
-	if code.genome.ok() {
-		MutateGenome(code.genome.val)
+	if code.Genome.ok() {
+		MutateGenome(code.Genome.val)
 	}
 }
 
 func measureGeneFitness(gene *Gene[int]) float64 {
 	gene.Mu.RLock()
 	defer gene.Mu.RUnlock()
-	total := reduce(gene.bases, func(a int, b int) int { return a + b })
+	total := reduce(gene.Bases, func(a int, b int) int { return a + b })
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
@@ -76,7 +76,7 @@ func measureAlleleFitness(allele *Allele[int]) float64 {
 	defer allele.Mu.RUnlock()
 	total := 0
 	for _, gene := range allele.Genes {
-		total += reduce(gene.bases, func(a int, b int) int { return a + b })
+		total += reduce(gene.Bases, func(a int, b int) int { return a + b })
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
@@ -85,9 +85,9 @@ func measureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 	chromosome.Mu.RLock()
 	defer chromosome.Mu.RUnlock()
 	total := 0
-	for _, allele := range chromosome.alleles {
+	for _, allele := range chromosome.Alleles {
 		for _, gene := range allele.Genes {
-			total += reduce(gene.bases, func(a int, b int) int { return a + b })
+			total += reduce(gene.Bases, func(a int, b int) int { return a + b })
 		}
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
@@ -97,10 +97,10 @@ func measureGenomeFitness(genome *Genome[int]) float64 {
 	genome.Mu.RLock()
 	defer genome.Mu.RUnlock()
 	total := 0
-	for _, chromosome := range genome.chromosomes {
-		for _, allele := range chromosome.alleles {
+	for _, chromosome := range genome.Chromosomes {
+		for _, allele := range chromosome.Alleles {
 			for _, gene := range allele.Genes {
-				total += reduce(gene.bases, func(a int, b int) int { return a + b })
+				total += reduce(gene.Bases, func(a int, b int) int { return a + b })
 			}
 		}
 	}
@@ -114,16 +114,16 @@ func measureCodeFitness(code Code[int]) float64 {
 		fitness += measureGeneFitness(code.Gene.val)
 		fitness_count++
 	}
-	if code.allele.ok() {
-		fitness += measureAlleleFitness(code.allele.val)
+	if code.Allele.ok() {
+		fitness += measureAlleleFitness(code.Allele.val)
 		fitness_count++
 	}
-	if code.chromosome.ok() {
-		fitness += measureChromosomeFitness(code.chromosome.val)
+	if code.Chromosome.ok() {
+		fitness += measureChromosomeFitness(code.Chromosome.val)
 		fitness_count++
 	}
-	if code.genome.ok() {
-		fitness += measureGenomeFitness(code.genome.val)
+	if code.Genome.ok() {
+		fitness += measureGenomeFitness(code.Genome.val)
 		fitness_count++
 	}
 
@@ -138,14 +138,14 @@ func MutateCodeExpensive(code Code[int]) {
 	if code.Gene.ok() {
 		MutateGene(code.Gene.val)
 	}
-	if code.allele.ok() {
-		MutateAllele(code.allele.val)
+	if code.Allele.ok() {
+		MutateAllele(code.Allele.val)
 	}
-	if code.chromosome.ok() {
-		MutateChromosome(code.chromosome.val)
+	if code.Chromosome.ok() {
+		MutateChromosome(code.Chromosome.val)
 	}
-	if code.genome.ok() {
-		MutateGenome(code.genome.val)
+	if code.Genome.ok() {
+		MutateGenome(code.Genome.val)
 	}
 }
 
@@ -160,16 +160,16 @@ func measureCodeFitnessExpensive(code Code[int]) float64 {
 		fitness += measureGeneFitness(code.Gene.val)
 		fitness_count++
 	}
-	if code.allele.ok() {
-		fitness += measureAlleleFitness(code.allele.val)
+	if code.Allele.ok() {
+		fitness += measureAlleleFitness(code.Allele.val)
 		fitness_count++
 	}
-	if code.chromosome.ok() {
-		fitness += measureChromosomeFitness(code.chromosome.val)
+	if code.Chromosome.ok() {
+		fitness += measureChromosomeFitness(code.Chromosome.val)
 		fitness_count++
 	}
-	if code.genome.ok() {
-		fitness += measureGenomeFitness(code.genome.val)
+	if code.Genome.ok() {
+		fitness += measureGenomeFitness(code.Genome.val)
 		fitness_count++
 	}
 
@@ -219,8 +219,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Gene[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Gene[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -264,8 +264,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Gene[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Gene[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 	})
@@ -283,7 +283,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{allele: NewOption(allele)})
+				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -312,8 +312,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -329,7 +329,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{allele: NewOption(allele)})
+				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -357,8 +357,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 	})
@@ -376,7 +376,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				chromosome, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, Code[int]{chromosome: NewOption(chromosome)})
+				initial_population = append(initial_population, Code[int]{Chromosome: NewOption(chromosome)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -405,8 +405,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Chromosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Chromosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -422,7 +422,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				chromosome, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, Code[int]{chromosome: NewOption(chromosome)})
+				initial_population = append(initial_population, Code[int]{Chromosome: NewOption(chromosome)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -450,8 +450,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Chromosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Chromosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 	})
@@ -469,7 +469,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				genome, _ := MakeGenome(opts)
-				initial_population = append(initial_population, Code[int]{genome: NewOption(genome)})
+				initial_population = append(initial_population, Code[int]{Genome: NewOption(genome)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -498,8 +498,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Genome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Genome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -515,7 +515,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				genome, _ := MakeGenome(opts)
-				initial_population = append(initial_population, Code[int]{genome: NewOption(genome)})
+				initial_population = append(initial_population, Code[int]{Genome: NewOption(genome)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -543,8 +543,8 @@ func TestOptimize(t *testing.T) {
 
 			best_fitness := final_population[0]
 
-			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("Optimize for Genome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+			if n_iterations < 1000 && best_fitness.Score < 0.9 {
+				t.Errorf("Optimize for Genome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 	})
@@ -648,7 +648,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{allele: NewOption(allele)})
+				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -689,7 +689,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{allele: NewOption(allele)})
+				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -732,7 +732,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				chromosome, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, Code[int]{chromosome: NewOption(chromosome)})
+				initial_population = append(initial_population, Code[int]{Chromosome: NewOption(chromosome)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -773,7 +773,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				chromosome, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, Code[int]{chromosome: NewOption(chromosome)})
+				initial_population = append(initial_population, Code[int]{Chromosome: NewOption(chromosome)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -817,7 +817,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				genome, _ := MakeGenome(opts)
-				initial_population = append(initial_population, Code[int]{genome: NewOption(genome)})
+				initial_population = append(initial_population, Code[int]{Genome: NewOption(genome)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -858,7 +858,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				genome, _ := MakeGenome(opts)
-				initial_population = append(initial_population, Code[int]{genome: NewOption(genome)})
+				initial_population = append(initial_population, Code[int]{Genome: NewOption(genome)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),

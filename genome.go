@@ -8,7 +8,7 @@ import (
 
 type Genome[T comparable] struct {
 	Name        string
-	chromosomes []*Chromosome[T]
+	Chromosomes []*Chromosome[T]
 	Mu          sync.RWMutex
 }
 
@@ -17,59 +17,59 @@ func (self *Genome[T]) Copy() *Genome[T] {
 	defer self.Mu.RUnlock()
 	var another Genome[T]
 	another.Name = self.Name
-	another.chromosomes = make([]*Chromosome[T], len(self.chromosomes))
-	copy(another.chromosomes, self.chromosomes)
+	another.Chromosomes = make([]*Chromosome[T], len(self.Chromosomes))
+	copy(another.Chromosomes, self.Chromosomes)
 	return &another
 }
 
 func (self *Genome[T]) Insert(index int, chromosome *Chromosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.chromosomes) {
+	if 0 > index || index > len(self.Chromosomes) {
 		return indexError{}
 	}
-	self.chromosomes = append(self.chromosomes[:index+1], self.chromosomes[index:]...)
-	self.chromosomes[index] = chromosome
+	self.Chromosomes = append(self.Chromosomes[:index+1], self.Chromosomes[index:]...)
+	self.Chromosomes[index] = chromosome
 	return nil
 }
 
 func (self *Genome[T]) Append(allele *Chromosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	self.chromosomes = append(self.chromosomes[:], allele)
+	self.Chromosomes = append(self.Chromosomes[:], allele)
 	return nil
 }
 
 func (self *Genome[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.chromosomes) {
+	if 0 > index || index > len(self.Chromosomes) {
 		return indexError{}
 	}
-	chromosome := self.chromosomes[index].Copy()
-	chromosomes := append(self.chromosomes[:index], chromosome)
-	self.chromosomes = append(chromosomes, self.chromosomes[index:]...)
+	chromosome := self.Chromosomes[index].Copy()
+	chromosomes := append(self.Chromosomes[:index], chromosome)
+	self.Chromosomes = append(chromosomes, self.Chromosomes[index:]...)
 	return nil
 }
 
 func (self *Genome[T]) Delete(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.chromosomes) {
+	if 0 > index || index >= len(self.Chromosomes) {
 		return indexError{}
 	}
-	self.chromosomes = append(self.chromosomes[:index], self.chromosomes[index+1:]...)
+	self.Chromosomes = append(self.Chromosomes[:index], self.Chromosomes[index+1:]...)
 	return nil
 }
 
 func (self *Genome[T]) Substitute(index int, chromosome *Chromosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.chromosomes) {
+	if 0 > index || index >= len(self.Chromosomes) {
 		return indexError{}
 	}
-	chromosomes := append(self.chromosomes[:index], chromosome)
-	self.chromosomes = append(chromosomes, self.chromosomes[index+1:]...)
+	chromosomes := append(self.Chromosomes[:index], chromosome)
+	self.Chromosomes = append(chromosomes, self.Chromosomes[index+1:]...)
 	return nil
 }
 
@@ -79,8 +79,8 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
 	another := &Genome[T]{}
-	min_size, _ := min(len(self.chromosomes), len(other.chromosomes))
-	max_size, _ := max(len(self.chromosomes), len(other.chromosomes))
+	min_size, _ := min(len(self.Chromosomes), len(other.Chromosomes))
+	max_size, _ := max(len(self.Chromosomes), len(other.Chromosomes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -111,16 +111,16 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 
 	chromosomes := make([]*Chromosome[T], max_size)
 	other_chromosomes := make([]*Chromosome[T], max_size)
-	copy(chromosomes, self.chromosomes)
-	copy(other_chromosomes, other.chromosomes)
+	copy(chromosomes, self.Chromosomes)
+	copy(other_chromosomes, other.Chromosomes)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			chromosomes = append(chromosomes[:i], self.chromosomes[i:]...)
-			other_chromosomes = append(other_chromosomes[:i], other.chromosomes[i:]...)
+			chromosomes = append(chromosomes[:i], self.Chromosomes[i:]...)
+			other_chromosomes = append(other_chromosomes[:i], other.Chromosomes[i:]...)
 		} else {
-			chromosomes = append(chromosomes[:i], other.chromosomes[i:]...)
-			other_chromosomes = append(other_chromosomes[:i], self.chromosomes[i:]...)
+			chromosomes = append(chromosomes[:i], other.Chromosomes[i:]...)
+			other_chromosomes = append(other_chromosomes[:i], self.Chromosomes[i:]...)
 		}
 		swapped = !swapped
 	}
@@ -139,7 +139,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 		}
 	}
 
-	another.chromosomes = chromosomes
+	another.Chromosomes = chromosomes
 	return another, nil
 }
 
@@ -148,7 +148,7 @@ func (self *Genome[T]) ToMap() map[string][]map[string][]map[string][]map[string
 	defer self.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]map[string][]T)
 	serialized[self.Name] = []map[string][]map[string][]map[string][]T{}
-	for _, chromosome := range self.chromosomes {
+	for _, chromosome := range self.Chromosomes {
 		serialized[self.Name] = append(serialized[self.Name], chromosome.ToMap())
 	}
 	return serialized
@@ -160,7 +160,7 @@ func (self *Genome[T]) Sequence(separator []T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, chromosome := range self.chromosomes {
+	for _, chromosome := range self.Chromosomes {
 		parts = append(parts, chromosome.Sequence(separator))
 	}
 

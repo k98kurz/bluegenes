@@ -169,7 +169,7 @@ func breakSequence[T comparable](sequence []T, separator []T) ([]T, []T) {
 func GeneFromSequence[T comparable](sequence []T) *Gene[T] {
 	g := &Gene[T]{}
 	g.Name, _ = RandomName(4)
-	g.bases = sequence
+	g.Bases = sequence
 	return g
 }
 
@@ -213,7 +213,7 @@ func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromoso
 		alleles = append(alleles, allele)
 	}
 
-	allele := &Chromosome[T]{alleles: alleles}
+	allele := &Chromosome[T]{Alleles: alleles}
 	allele.Name, _ = RandomName(3)
 	return allele
 }
@@ -237,7 +237,7 @@ func GenomeFromSequence[T comparable](sequence []T, separator []T) *Genome[T] {
 		chromosomes = append(chromosomes, chromosome)
 	}
 
-	genome := &Genome[T]{chromosomes: chromosomes}
+	genome := &Genome[T]{Chromosomes: chromosomes}
 	genome.Name, _ = RandomName(3)
 	return genome
 }

@@ -8,7 +8,7 @@ import (
 
 type Gene[T comparable] struct {
 	Name  string
-	bases []T
+	Bases []T
 	Mu    sync.RWMutex
 }
 
@@ -17,71 +17,71 @@ func (self *Gene[T]) Copy() *Gene[T] {
 	defer self.Mu.RUnlock()
 	var another Gene[T]
 	another.Name = self.Name
-	another.bases = make([]T, len(self.bases))
-	copy(another.bases, self.bases)
+	another.Bases = make([]T, len(self.Bases))
+	copy(another.Bases, self.Bases)
 	return &another
 }
 
 func (self *Gene[T]) Insert(index int, base T) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.bases) {
+	if 0 > index || index > len(self.Bases) {
 		return indexError{}
 	}
-	self.bases = append(self.bases[:index+1], self.bases[index:]...)
-	self.bases[index] = base
+	self.Bases = append(self.Bases[:index+1], self.Bases[index:]...)
+	self.Bases[index] = base
 	return nil
 }
 
 func (self *Gene[T]) Append(base T) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	self.bases = append(self.bases[:], base)
+	self.Bases = append(self.Bases[:], base)
 	return nil
 }
 
 func (self *Gene[T]) InsertSequence(index int, sequence []T) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.bases) {
+	if 0 > index || index > len(self.Bases) {
 		return indexError{}
 	}
-	bases := append(self.bases[:index], sequence...)
-	self.bases = append(bases, self.bases[index:]...)
+	bases := append(self.Bases[:index], sequence...)
+	self.Bases = append(bases, self.Bases[index:]...)
 	return nil
 }
 
 func (self *Gene[T]) Delete(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.bases) {
+	if 0 > index || index >= len(self.Bases) {
 		return indexError{}
 	}
-	self.bases = append(self.bases[:index], self.bases[index+1:]...)
+	self.Bases = append(self.Bases[:index], self.Bases[index+1:]...)
 	return nil
 }
 
 func (self *Gene[T]) DeleteSequence(index int, size int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.bases) {
+	if 0 > index || index >= len(self.Bases) {
 		return indexError{}
 	}
 	if size == 0 {
 		return anError{"size Must be >0"}
 	}
-	self.bases = append(self.bases[:index], self.bases[index+size:]...)
+	self.Bases = append(self.Bases[:index], self.Bases[index+size:]...)
 	return nil
 }
 
 func (self *Gene[T]) Substitute(index int, base T) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.bases) {
+	if 0 > index || index >= len(self.Bases) {
 		return indexError{}
 	}
-	bases := append(self.bases[:index], base)
-	self.bases = append(bases, self.bases[index+1:]...)
+	bases := append(self.Bases[:index], base)
+	self.Bases = append(bases, self.Bases[index+1:]...)
 	return nil
 }
 
@@ -91,8 +91,8 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
 	another := &Gene[T]{}
-	min_size, _ := min(len(self.bases), len(other.bases))
-	max_size, _ := max(len(self.bases), len(other.bases))
+	min_size, _ := min(len(self.Bases), len(other.Bases))
+	max_size, _ := max(len(self.Bases), len(other.Bases))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -122,17 +122,17 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 	another.Name = Name
 
 	bases := make([]T, max_size)
-	copy(bases, self.bases)
+	copy(bases, self.Bases)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			bases = append(bases[:i], self.bases[i:]...)
+			bases = append(bases[:i], self.Bases[i:]...)
 		} else {
-			bases = append(bases[:i], other.bases[i:]...)
+			bases = append(bases[:i], other.Bases[i:]...)
 		}
 		swapped = !swapped
 	}
-	another.bases = bases
+	another.Bases = bases
 
 	return another, nil
 }
@@ -141,12 +141,12 @@ func (self *Gene[T]) ToMap() map[string][]T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	serialized := make(map[string][]T)
-	serialized[self.Name] = self.bases
+	serialized[self.Name] = self.Bases
 	return serialized
 }
 
 func (self *Gene[T]) Sequence() []T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
-	return self.bases
+	return self.Bases
 }
