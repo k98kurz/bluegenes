@@ -456,7 +456,7 @@ func TestOptimize(t *testing.T) {
 		})
 	})
 
-	t.Run("Allele", func(t *testing.T) {
+	t.Run("Genome", func(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
@@ -548,6 +548,113 @@ func TestOptimize(t *testing.T) {
 			}
 		})
 	})
+
+	t.Run("IterationHook", func(t *testing.T) {
+		type Log struct {
+			count int
+			best  ScoredCode[int]
+		}
+		t.Run("parallel", func(t *testing.T) {
+			logs := []Log{}
+			log_iteration := func(gc int, pop []ScoredCode[int]) {
+				logs = append(logs, Log{count: gc, best: pop[9]})
+			}
+			base_factory := func() int { return RandomInt(-10, 10) }
+			opts := MakeOptions[int]{
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
+			}
+			initial_population := []Code[int]{}
+			for i := 0; i < 10; i++ {
+				gene, _ := MakeGene(opts)
+				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
+			}
+
+			n_iterations, _, err := Optimize(OptimizationParams[int]{
+				IterationHook:     NewOption(log_iteration),
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				ParallelCount:     NewOption(10),
+				RecombinationOpts: NewOption(RecombineOptions{
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
+				}),
+			})
+
+			if err != nil {
+				t.Fatalf("Optimize for Gene[int] with IterationHook failed with error: %v", err)
+			}
+
+			if len(logs) != n_iterations {
+				t.Errorf("Optimize for Gene[int] with IterationHook failed: expected %d log, observed %d", n_iterations, len(logs))
+			}
+
+			first_log_score := logs[0].best.Score
+			final_log_score := logs[len(logs)-1].best.Score
+			if final_log_score <= first_log_score {
+				t.Errorf("Optimize for Gene[int] with IterationHook failed: first score (%f) > final score (%f)", final_log_score, first_log_score)
+			}
+		})
+		t.Run("sequential", func(t *testing.T) {
+			t.Parallel()
+			logs := []Log{}
+			log_iteration := func(gc int, pop []ScoredCode[int]) {
+				logs = append(logs, Log{count: gc, best: pop[9]})
+			}
+			base_factory := func() int { return RandomInt(-10, 10) }
+			opts := MakeOptions[int]{
+				NBases:       NewOption(uint(5)),
+				NGenes:       NewOption(uint(4)),
+				NAlleles:     NewOption(uint(3)),
+				NChromosomes: NewOption(uint(2)),
+				BaseFactory:  NewOption(base_factory),
+			}
+			initial_population := []Code[int]{}
+			for i := 0; i < 10; i++ {
+				gene, _ := MakeGene(opts)
+				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
+			}
+
+			n_iterations, _, err := Optimize(OptimizationParams[int]{
+				IterationHook:     NewOption(log_iteration),
+				InitialPopulation: NewOption(initial_population),
+				MeasureFitness:    NewOption(measureCodeFitness),
+				Mutate:            NewOption(MutateCode),
+				MaxIterations:     NewOption(1000),
+				RecombinationOpts: NewOption(RecombineOptions{
+					RecombineGenes:       NewOption(true),
+					MatchGenes:           NewOption(false),
+					RecombineAlleles:     NewOption(true),
+					MatchAlleles:         NewOption(false),
+					RecombineChromosomes: NewOption(true),
+					MatchChromosomes:     NewOption(false),
+				}),
+			})
+
+			if err != nil {
+				t.Fatalf("Optimize for Gene[int] failed with error: %v", err)
+			}
+
+			if len(logs) != n_iterations {
+				t.Errorf("Optimize for Gene[int] with IterationHook failed: expected %d log, observed %d", n_iterations, len(logs))
+			}
+
+			first_log_score := logs[0].best.Score
+			final_log_score := logs[len(logs)-1].best.Score
+			if final_log_score <= first_log_score {
+				t.Errorf("Optimize for Gene[int] with IterationHook failed: first score (%f) > final score (%f)", final_log_score, first_log_score)
+			}
+		})
+	})
 }
 
 func TestTuneOptimize(t *testing.T) {
@@ -635,6 +742,7 @@ func TestTuneOptimize(t *testing.T) {
 			}
 		})
 	})
+
 	t.Run("Allele", func(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
@@ -719,6 +827,7 @@ func TestTuneOptimize(t *testing.T) {
 			}
 		})
 	})
+
 	t.Run("Chromosome", func(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }

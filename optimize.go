@@ -63,12 +63,14 @@ type OptimizationParams[T comparable] struct {
 	FitnessTarget        Option[float64]
 	RecombinationOpts    Option[RecombineOptions]
 	ParallelCount        Option[int]
+	IterationHook        Option[func(int, []ScoredCode[T])]
 }
 
 type BenchmarkResult struct {
 	CostOfCopy           int
 	CostOfMutate         int
 	CostOfMeasureFitness int
+	CostOfIterationHook  int
 }
 
 type ScoredCode[T comparable] struct {
@@ -216,6 +218,10 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 		wg.Wait()
 		sortScoredCodes(scores)
 		best_fitness = scores[0].Score
+
+		if params.IterationHook.ok() {
+			params.IterationHook.val(generation_count, scores)
+		}
 	}
 
 	return generation_count, scores, nil
@@ -247,6 +253,10 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 
 		sortScoredCodes(scores)
 		best_fitness = scores[0].Score
+
+		if params.IterationHook.ok() {
+			params.IterationHook.val(generation_count, scores)
+		}
 	}
 
 	return generation_count, scores, nil
@@ -279,7 +289,7 @@ func TuneOptimization[T comparable](params OptimizationParams[T], max_threads ..
 
 	res := BenchmarkOptimization(params)
 
-	n_goroutines = int(math.Log2(float64((res.CostOfMutate + res.CostOfMeasureFitness) / res.CostOfCopy)))
+	n_goroutines = int(math.Log2(float64((res.CostOfMutate + res.CostOfMeasureFitness + res.CostOfIterationHook) / res.CostOfCopy)))
 
 	if n_goroutines > max_goroutines {
 		n_goroutines = max_goroutines
@@ -336,9 +346,26 @@ func BenchmarkOptimization[T comparable](params OptimizationParams[T]) Benchmark
 	})
 	CostOfCopy := res.T / time.Duration(res.N)
 
+	CostOfIterationHook := time.Second * 0
+
+	if params.IterationHook.ok() {
+		scored := []ScoredCode[T]{}
+		for len(scored) < params.PopulationSize.val {
+			scored = append(scored, ScoredCode[T]{Code: params.InitialPopulation.val[0], Score: 0.5})
+		}
+		res := testing.Benchmark(func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				params.IterationHook.val(i, scored)
+			}
+		})
+
+		CostOfIterationHook = res.T / time.Duration(res.N)
+	}
+
 	return BenchmarkResult{
 		CostOfMutate:         int(CostOfMutate),
 		CostOfMeasureFitness: int(CostOfMeasureFitness),
 		CostOfCopy:           int(CostOfCopy),
+		CostOfIterationHook:  int(CostOfIterationHook),
 	}
 }
