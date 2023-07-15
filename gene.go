@@ -7,7 +7,7 @@ import (
 )
 
 type Gene[T comparable] struct {
-	name  string
+	Name  string
 	bases []T
 	mu    sync.RWMutex
 }
@@ -16,7 +16,7 @@ func (self *Gene[T]) Copy() *Gene[T] {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 	var another Gene[T]
-	another.name = self.name
+	another.Name = self.Name
 	another.bases = make([]T, len(self.bases))
 	copy(another.bases, self.bases)
 	return &another
@@ -110,16 +110,16 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 		}
 	}
 
-	name := self.name
-	if name != other.name {
-		name_size, err := min(len(name), len(other.name))
+	Name := self.Name
+	if Name != other.Name {
+		Name_size, err := min(len(Name), len(other.Name))
 		if err != nil {
 			return another, err
 		}
-		name_swap := RandomInt(1, name_size-1)
-		name = self.name[:name_swap] + other.name[name_swap:]
+		Name_swap := RandomInt(1, Name_size-1)
+		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
 	}
-	another.name = name
+	another.Name = Name
 
 	bases := make([]T, max_size)
 	copy(bases, self.bases)
@@ -141,7 +141,7 @@ func (self *Gene[T]) ToMap() map[string][]T {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 	serialized := make(map[string][]T)
-	serialized[self.name] = self.bases
+	serialized[self.Name] = self.bases
 	return serialized
 }
 

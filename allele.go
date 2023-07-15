@@ -7,8 +7,8 @@ import (
 )
 
 type Allele[T comparable] struct {
-	name  string
-	genes []*Gene[T]
+	Name  string
+	Genes []*Gene[T]
 	mu    sync.RWMutex
 }
 
@@ -16,60 +16,60 @@ func (a *Allele[T]) Copy() *Allele[T] {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 	var another Allele[T]
-	another.name = a.name
-	another.genes = make([]*Gene[T], len(a.genes))
-	copy(another.genes, a.genes)
+	another.Name = a.Name
+	another.Genes = make([]*Gene[T], len(a.Genes))
+	copy(another.Genes, a.Genes)
 	return &another
 }
 
 func (self *Allele[T]) Insert(index int, gene *Gene[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	if 0 > index || index > len(self.genes) {
+	if 0 > index || index > len(self.Genes) {
 		return indexError{}
 	}
-	self.genes = append(self.genes[:index+1], self.genes[index:]...)
-	self.genes[index] = gene
+	self.Genes = append(self.Genes[:index+1], self.Genes[index:]...)
+	self.Genes[index] = gene
 	return nil
 }
 
 func (self *Allele[T]) Append(gene *Gene[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	self.genes = append(self.genes[:], gene)
+	self.Genes = append(self.Genes[:], gene)
 	return nil
 }
 
 func (self *Allele[T]) Duplicate(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	if 0 > index || index > len(self.genes) {
+	if 0 > index || index > len(self.Genes) {
 		return indexError{}
 	}
-	gene := self.genes[index].Copy()
-	genes := append(self.genes[:index], gene)
-	self.genes = append(genes, self.genes[index:]...)
+	Gene := self.Genes[index].Copy()
+	Genes := append(self.Genes[:index], Gene)
+	self.Genes = append(Genes, self.Genes[index:]...)
 	return nil
 }
 
 func (self *Allele[T]) Delete(index int) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	if 0 > index || index >= len(self.genes) {
+	if 0 > index || index >= len(self.Genes) {
 		return indexError{}
 	}
-	self.genes = append(self.genes[:index], self.genes[index+1:]...)
+	self.Genes = append(self.Genes[:index], self.Genes[index+1:]...)
 	return nil
 }
 
 func (self *Allele[T]) Substitute(index int, gene *Gene[T]) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	if 0 > index || index >= len(self.genes) {
+	if 0 > index || index >= len(self.Genes) {
 		return indexError{}
 	}
-	genes := append(self.genes[:index], gene)
-	self.genes = append(genes, self.genes[index+1:]...)
+	genes := append(self.Genes[:index], gene)
+	self.Genes = append(genes, self.Genes[index+1:]...)
 	return nil
 }
 
@@ -79,8 +79,8 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 	other.mu.RLock()
 	defer other.mu.RUnlock()
 	another := &Allele[T]{}
-	min_size, _ := min(len(self.genes), len(other.genes))
-	max_size, _ := max(len(self.genes), len(other.genes))
+	min_size, _ := min(len(self.Genes), len(other.Genes))
+	max_size, _ := max(len(self.Genes), len(other.Genes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -98,29 +98,29 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 		}
 	}
 
-	name := self.name
-	if name != other.name {
-		name_size, err := min(len(name), len(other.name))
+	Name := self.Name
+	if Name != other.Name {
+		Name_size, err := min(len(Name), len(other.Name))
 		if err != nil {
 			return another, err
 		}
-		name_swap := RandomInt(1, name_size-1)
-		name = self.name[:name_swap] + other.name[name_swap:]
+		Name_swap := RandomInt(1, Name_size-1)
+		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
 	}
-	another.name = name
+	another.Name = Name
 
 	genes := make([]*Gene[T], max_size)
 	other_genes := make([]*Gene[T], max_size)
-	copy(genes, self.genes)
-	copy(other_genes, other.genes)
+	copy(genes, self.Genes)
+	copy(other_genes, other.Genes)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			genes = append(genes[:i], self.genes[i:]...)
-			other_genes = append(other_genes[:i], other.genes[i:]...)
+			genes = append(genes[:i], self.Genes[i:]...)
+			other_genes = append(other_genes[:i], other.Genes[i:]...)
 		} else {
-			genes = append(genes[:i], other.genes[i:]...)
-			other_genes = append(other_genes[:i], self.genes[i:]...)
+			genes = append(genes[:i], other.Genes[i:]...)
+			other_genes = append(other_genes[:i], self.Genes[i:]...)
 		}
 		swapped = !swapped
 	}
@@ -129,7 +129,7 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 		for i := 0; i < min_size; i++ {
 			if (options.match_genes.ok() &&
 				!options.match_genes.val) ||
-				genes[i].name == other_genes[i].name {
+				genes[i].Name == other_genes[i].Name {
 				gene, err := genes[i].Recombine(other_genes[i], []int{}, options)
 				if err != nil {
 					return another, err
@@ -139,7 +139,7 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 		}
 	}
 
-	another.genes = genes
+	another.Genes = genes
 	return another, nil
 }
 
@@ -147,9 +147,9 @@ func (self *Allele[T]) ToMap() map[string][]map[string][]T {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 	serialized := make(map[string][]map[string][]T)
-	serialized[self.name] = []map[string][]T{}
-	for _, gene := range self.genes {
-		serialized[self.name] = append(serialized[self.name], gene.ToMap())
+	serialized[self.Name] = []map[string][]T{}
+	for _, gene := range self.Genes {
+		serialized[self.Name] = append(serialized[self.Name], gene.ToMap())
 	}
 	return serialized
 }
@@ -160,7 +160,7 @@ func (self *Allele[T]) Sequence(separator []T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, gene := range self.genes {
+	for _, gene := range self.Genes {
 		parts = append(parts, gene.Sequence())
 	}
 

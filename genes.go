@@ -35,7 +35,7 @@ type MakeOptions[T comparable] struct {
 	n_genes       Option[uint]
 	n_alleles     Option[uint]
 	n_chromosomes Option[uint]
-	name          Option[string]
+	Name          Option[string]
 	base_factory  Option[func() T]
 }
 
@@ -60,10 +60,10 @@ func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
 		b := options.base_factory.val()
 		g.Append(b)
 	}
-	if options.name.ok() {
-		g.name = options.name.val
+	if options.Name.ok() {
+		g.Name = options.Name.val
 	} else {
-		g.name, _ = RandomName(4)
+		g.Name, _ = RandomName(4)
 	}
 	return g, nil
 }
@@ -86,10 +86,10 @@ func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
 		}
 		a.Append(g)
 	}
-	if options.name.ok() {
-		a.name = options.name.val
+	if options.Name.ok() {
+		a.Name = options.Name.val
 	} else {
-		a.name, _ = RandomName(3)
+		a.Name, _ = RandomName(3)
 	}
 	return a, nil
 }
@@ -115,10 +115,10 @@ func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error
 		}
 		c.Append(a)
 	}
-	if options.name.ok() {
-		c.name = options.name.val
+	if options.Name.ok() {
+		c.Name = options.Name.val
 	} else {
-		c.name, _ = RandomName(3)
+		c.Name, _ = RandomName(3)
 	}
 	return c, nil
 }
@@ -147,10 +147,10 @@ func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error) {
 		}
 		g.Append(c)
 	}
-	if options.name.ok() {
-		g.name = options.name.val
+	if options.Name.ok() {
+		g.Name = options.Name.val
 	} else {
-		g.name, _ = RandomName(3)
+		g.Name, _ = RandomName(3)
 	}
 	return g, nil
 }
@@ -168,7 +168,7 @@ func breakSequence[T comparable](sequence []T, separator []T) ([]T, []T) {
 
 func GeneFromSequence[T comparable](sequence []T) *Gene[T] {
 	g := &Gene[T]{}
-	g.name, _ = RandomName(4)
+	g.Name, _ = RandomName(4)
 	g.bases = sequence
 	return g
 }
@@ -190,8 +190,8 @@ func AlleleFromSequence[T comparable](sequence []T, separator []T) *Allele[T] {
 		genes = append(genes, gene)
 	}
 
-	allele := &Allele[T]{genes: genes}
-	allele.name, _ = RandomName(3)
+	allele := &Allele[T]{Genes: genes}
+	allele.Name, _ = RandomName(3)
 	return allele
 }
 
@@ -214,7 +214,7 @@ func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromoso
 	}
 
 	allele := &Chromosome[T]{alleles: alleles}
-	allele.name, _ = RandomName(3)
+	allele.Name, _ = RandomName(3)
 	return allele
 }
 
@@ -238,6 +238,6 @@ func GenomeFromSequence[T comparable](sequence []T, separator []T) *Genome[T] {
 	}
 
 	genome := &Genome[T]{chromosomes: chromosomes}
-	genome.name, _ = RandomName(3)
+	genome.Name, _ = RandomName(3)
 	return genome
 }

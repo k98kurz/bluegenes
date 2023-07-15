@@ -9,7 +9,7 @@ import (
 )
 
 type Code[T comparable] struct {
-	gene       Option[*Gene[T]]
+	Gene       Option[*Gene[T]]
 	allele     Option[*Allele[T]]
 	chromosome Option[*Chromosome[T]]
 	genome     Option[*Genome[T]]
@@ -17,9 +17,9 @@ type Code[T comparable] struct {
 
 func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T] {
 	child := Code[T]{}
-	if self.gene.ok() && other.gene.ok() {
-		child.gene.val, _ = self.gene.val.Recombine(other.gene.val, []int{}, recombinationOpts)
-		child.gene.isSet = true
+	if self.Gene.ok() && other.Gene.ok() {
+		child.Gene.val, _ = self.Gene.val.Recombine(other.Gene.val, []int{}, recombinationOpts)
+		child.Gene.isSet = true
 	}
 	if self.allele.ok() && other.allele.ok() {
 		child.allele.val, _ = self.allele.val.Recombine(other.allele.val, []int{}, recombinationOpts)
@@ -38,8 +38,8 @@ func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions)
 
 func (self Code[T]) copy() Code[T] {
 	gm := Code[T]{}
-	if self.gene.ok() {
-		gm.gene = NewOption(self.gene.val.Copy())
+	if self.Gene.ok() {
+		gm.Gene = NewOption(self.Gene.val.Copy())
 	}
 	if self.allele.ok() {
 		gm.allele = NewOption(self.allele.val.Copy())
@@ -76,7 +76,7 @@ type ScoredCode[T comparable] struct {
 	score float64
 }
 
-func SortScoredCodes[T comparable](scores []ScoredCode[T]) {
+func sortScoredCodes[T comparable](scores []ScoredCode[T]) {
 	sort.SliceStable(scores, func(i, j int) bool {
 		return scores[i].score > scores[j].score
 	})
@@ -168,7 +168,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 		score := ScoredCode[T]{code: genome, score: measure_fitness(genome)}
 		scores = append(scores, score)
 	}
-	SortScoredCodes(scores)
+	sortScoredCodes(scores)
 	best_fitness := scores[0].score
 
 	for generation_count < params.max_iterations.val && best_fitness < params.fitness_target.val {
@@ -214,7 +214,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 		}()
 
 		wg.Wait()
-		SortScoredCodes(scores)
+		sortScoredCodes(scores)
 		best_fitness = scores[0].score
 	}
 
@@ -230,7 +230,7 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 		score := ScoredCode[T]{code: code, score: measure_fitness(code)}
 		scores = append(scores, score)
 	}
-	SortScoredCodes(scores)
+	sortScoredCodes(scores)
 	best_fitness := scores[0].score
 
 	for generation_count < params.max_iterations.val && best_fitness < params.fitness_target.val {
@@ -245,7 +245,7 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 			scores = append(scores, ScoredCode[T]{code: child, score: s})
 		}
 
-		SortScoredCodes(scores)
+		sortScoredCodes(scores)
 		best_fitness = scores[0].score
 	}
 

@@ -24,7 +24,7 @@ following hierarchy:
 - `type Genome[T comparable] struct` contains `Chromosome[T]`s
 - `type Code[T comparable] interface` is a constraint type for the above
 
-Each of these classes has a `name string` attribute to identify the genetic
+Each of these classes has a `Name string` attribute to identify the genetic
 material and a `mu sync.RWMutex` for safe concurrent operations. The names can
 be generated as random alphanumeric strings if not supplied in the relevant
 instantiation statements.

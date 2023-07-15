@@ -7,7 +7,7 @@ import (
 )
 
 type Chromosome[T comparable] struct {
-	name    string
+	Name    string
 	alleles []*Allele[T]
 	mu      sync.RWMutex
 }
@@ -16,7 +16,7 @@ func (c *Chromosome[T]) Copy() *Chromosome[T] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	var another Chromosome[T]
-	another.name = c.name
+	another.Name = c.Name
 	another.alleles = make([]*Allele[T], len(c.alleles))
 	copy(another.alleles, c.alleles)
 	return &another
@@ -98,16 +98,16 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 		}
 	}
 
-	name := self.name
-	if name != other.name {
-		name_size, err := min(len(name), len(other.name))
+	Name := self.Name
+	if Name != other.Name {
+		Name_size, err := min(len(Name), len(other.Name))
 		if err != nil {
 			return another, err
 		}
-		name_swap := RandomInt(1, name_size-1)
-		name = self.name[:name_swap] + other.name[name_swap:]
+		Name_swap := RandomInt(1, Name_size-1)
+		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
 	}
-	another.name = name
+	another.Name = Name
 
 	alleles := make([]*Allele[T], max_size)
 	other_alleles := make([]*Allele[T], max_size)
@@ -129,7 +129,7 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 		for i := 0; i < min_size; i++ {
 			if (options.match_alleles.ok() &&
 				!options.match_alleles.val) ||
-				alleles[i].name == other_alleles[i].name {
+				alleles[i].Name == other_alleles[i].Name {
 				gene, err := alleles[i].Recombine(other_alleles[i], []int{}, options)
 				if err != nil {
 					return another, err
@@ -147,9 +147,9 @@ func (self *Chromosome[T]) ToMap() map[string][]map[string][]map[string][]T {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]T)
-	serialized[self.name] = []map[string][]map[string][]T{}
+	serialized[self.Name] = []map[string][]map[string][]T{}
 	for _, gene := range self.alleles {
-		serialized[self.name] = append(serialized[self.name], gene.ToMap())
+		serialized[self.Name] = append(serialized[self.Name], gene.ToMap())
 	}
 	return serialized
 }

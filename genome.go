@@ -7,7 +7,7 @@ import (
 )
 
 type Genome[T comparable] struct {
-	name        string
+	Name        string
 	chromosomes []*Chromosome[T]
 	mu          sync.RWMutex
 }
@@ -16,7 +16,7 @@ func (self *Genome[T]) Copy() *Genome[T] {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 	var another Genome[T]
-	another.name = self.name
+	another.Name = self.Name
 	another.chromosomes = make([]*Chromosome[T], len(self.chromosomes))
 	copy(another.chromosomes, self.chromosomes)
 	return &another
@@ -98,16 +98,16 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 		}
 	}
 
-	name := self.name
-	if name != other.name {
-		name_size, err := min(len(name), len(other.name))
+	Name := self.Name
+	if Name != other.Name {
+		Name_size, err := min(len(Name), len(other.Name))
 		if err != nil {
 			return another, err
 		}
-		name_swap := RandomInt(1, name_size-1)
-		name = self.name[:name_swap] + other.name[name_swap:]
+		Name_swap := RandomInt(1, Name_size-1)
+		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
 	}
-	another.name = name
+	another.Name = Name
 
 	chromosomes := make([]*Chromosome[T], max_size)
 	other_chromosomes := make([]*Chromosome[T], max_size)
@@ -129,7 +129,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 		for i := 0; i < min_size; i++ {
 			if (options.match_chromosomes.ok() &&
 				!options.match_chromosomes.val) ||
-				chromosomes[i].name == other_chromosomes[i].name {
+				chromosomes[i].Name == other_chromosomes[i].Name {
 				gene, err := chromosomes[i].Recombine(other_chromosomes[i], []int{}, options)
 				if err != nil {
 					return another, err
@@ -147,9 +147,9 @@ func (self *Genome[T]) ToMap() map[string][]map[string][]map[string][]map[string
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]map[string][]T)
-	serialized[self.name] = []map[string][]map[string][]map[string][]T{}
+	serialized[self.Name] = []map[string][]map[string][]map[string][]T{}
 	for _, chromosome := range self.chromosomes {
-		serialized[self.name] = append(serialized[self.name], chromosome.ToMap())
+		serialized[self.Name] = append(serialized[self.Name], chromosome.ToMap())
 	}
 	return serialized
 }

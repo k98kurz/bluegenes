@@ -28,7 +28,7 @@ func mutateGene(gene *Gene[int]) {
 func mutateAllele(allele *Allele[int]) {
 	allele.mu.Lock()
 	defer allele.mu.Unlock()
-	for _, gene := range allele.genes {
+	for _, gene := range allele.Genes {
 		mutateGene(gene)
 	}
 }
@@ -50,8 +50,8 @@ func mutateGenome(genome *Genome[int]) {
 }
 
 func mutateCode(code Code[int]) {
-	if code.gene.ok() {
-		mutateGene(code.gene.val)
+	if code.Gene.ok() {
+		mutateGene(code.Gene.val)
 	}
 	if code.allele.ok() {
 		mutateAllele(code.allele.val)
@@ -75,7 +75,7 @@ func measureAlleleFitness(allele *Allele[int]) float64 {
 	allele.mu.RLock()
 	defer allele.mu.RUnlock()
 	total := 0
-	for _, gene := range allele.genes {
+	for _, gene := range allele.Genes {
 		total += reduce(gene.bases, func(a int, b int) int { return a + b })
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
@@ -86,7 +86,7 @@ func measureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 	defer chromosome.mu.RUnlock()
 	total := 0
 	for _, allele := range chromosome.alleles {
-		for _, gene := range allele.genes {
+		for _, gene := range allele.Genes {
 			total += reduce(gene.bases, func(a int, b int) int { return a + b })
 		}
 	}
@@ -99,7 +99,7 @@ func measureGenomeFitness(genome *Genome[int]) float64 {
 	total := 0
 	for _, chromosome := range genome.chromosomes {
 		for _, allele := range chromosome.alleles {
-			for _, gene := range allele.genes {
+			for _, gene := range allele.Genes {
 				total += reduce(gene.bases, func(a int, b int) int { return a + b })
 			}
 		}
@@ -110,8 +110,8 @@ func measureGenomeFitness(genome *Genome[int]) float64 {
 func measureCodeFitness(code Code[int]) float64 {
 	fitness := 0.0
 	fitness_count := 0
-	if code.gene.ok() {
-		fitness += measureGeneFitness(code.gene.val)
+	if code.Gene.ok() {
+		fitness += measureGeneFitness(code.Gene.val)
 		fitness_count++
 	}
 	if code.allele.ok() {
@@ -135,8 +135,8 @@ func mutateCodeExpensive(code Code[int]) {
 	for i := 0; i < 1000; i++ {
 		val /= 6.9
 	}
-	if code.gene.ok() {
-		mutateGene(code.gene.val)
+	if code.Gene.ok() {
+		mutateGene(code.Gene.val)
 	}
 	if code.allele.ok() {
 		mutateAllele(code.allele.val)
@@ -156,8 +156,8 @@ func measureCodeFitnessExpensive(code Code[int]) float64 {
 	}
 	fitness := 0.0
 	fitness_count := 0
-	if code.gene.ok() {
-		fitness += measureGeneFitness(code.gene.val)
+	if code.Gene.ok() {
+		fitness += measureGeneFitness(code.Gene.val)
 		fitness_count++
 	}
 	if code.allele.ok() {
@@ -190,7 +190,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, Code[int]{gene: NewOption(gene)})
+				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -236,7 +236,7 @@ func TestOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, Code[int]{gene: NewOption(gene)})
+				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -564,7 +564,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, Code[int]{gene: NewOption(gene)})
+				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
 			}
 			params := OptimizationParams[int]{
 				initial_population: NewOption(initial_population),
@@ -605,7 +605,7 @@ func TestTuneOptimize(t *testing.T) {
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, Code[int]{gene: NewOption(gene)})
+				initial_population = append(initial_population, Code[int]{Gene: NewOption(gene)})
 			}
 			params := OptimizationParams[int]{
 				initial_population: NewOption(initial_population),
