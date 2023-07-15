@@ -1,4 +1,4 @@
-package genetics
+package bluegenes
 
 import "fmt"
 

@@ -1,4 +1,4 @@
-package genetics
+package bluegenes
 
 import (
 	"math"
@@ -85,11 +85,11 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
 		swaps, _ := max(RandomInt(0, int(max_swaps)), 1)
-		idxSet := newSset[int]()
+		idxSet := newSet[int]()
 		for i := 0; i < swaps; i++ {
-			idxSet.Add(RandomInt(0, min_size))
+			idxSet.add(RandomInt(0, min_size))
 		}
-		indices = idxSet.ToSlice()
+		indices = idxSet.toSlice()
 		sort.Ints(indices)
 	}
 	for _, i := range indices {

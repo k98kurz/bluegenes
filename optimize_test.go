@@ -1,4 +1,4 @@
-package genetics
+package bluegenes
 
 import (
 	"math"
@@ -8,7 +8,7 @@ import (
 
 var target = 12345
 
-func MutateGene(gene *Gene[int]) {
+func mutateGene(gene *Gene[int]) {
 	gene.mu.Lock()
 	defer gene.mu.Unlock()
 	for i := 0; i < len(gene.bases); i++ {
@@ -25,38 +25,38 @@ func MutateGene(gene *Gene[int]) {
 	}
 }
 
-func MutateAllele(allele *Allele[int]) {
+func mutateAllele(allele *Allele[int]) {
 	allele.mu.Lock()
 	defer allele.mu.Unlock()
 	for _, gene := range allele.genes {
-		MutateGene(gene)
+		mutateGene(gene)
 	}
 }
 
-func MutateChromosome(chromosome *Chromosome[int]) {
+func mutateChromosome(chromosome *Chromosome[int]) {
 	chromosome.mu.Lock()
 	defer chromosome.mu.Unlock()
 	for _, allele := range chromosome.alleles {
-		MutateAllele(allele)
+		mutateAllele(allele)
 	}
 }
 
-func MutateGenome(genome *Genome[int]) {
+func mutateGenome(genome *Genome[int]) {
 	genome.mu.Lock()
 	defer genome.mu.Unlock()
 	for _, chromosome := range genome.chromosomes {
-		MutateChromosome(chromosome)
+		mutateChromosome(chromosome)
 	}
 }
 
-func MeasureGeneFitness(gene *Gene[int]) float64 {
+func measureGeneFitness(gene *Gene[int]) float64 {
 	gene.mu.RLock()
 	defer gene.mu.RUnlock()
 	total := reduce(gene.bases, func(a int, b int) int { return a + b })
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MeasureAlleleFitness(allele *Allele[int]) float64 {
+func measureAlleleFitness(allele *Allele[int]) float64 {
 	allele.mu.RLock()
 	defer allele.mu.RUnlock()
 	total := 0
@@ -66,7 +66,7 @@ func MeasureAlleleFitness(allele *Allele[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MeasureChromosomeFitness(chromosome *Chromosome[int]) float64 {
+func measureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 	chromosome.mu.RLock()
 	defer chromosome.mu.RUnlock()
 	total := 0
@@ -78,7 +78,7 @@ func MeasureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MeasureGenomeFitness(genome *Genome[int]) float64 {
+func measureGenomeFitness(genome *Genome[int]) float64 {
 	genome.mu.RLock()
 	defer genome.mu.RUnlock()
 	total := 0
@@ -92,7 +92,7 @@ func MeasureGenomeFitness(genome *Genome[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MutateGeneExpensive(gene *Gene[int]) {
+func mutateGeneExpensive(gene *Gene[int]) {
 	gene.mu.Lock()
 	defer gene.mu.Unlock()
 	val := 42.0
@@ -113,31 +113,31 @@ func MutateGeneExpensive(gene *Gene[int]) {
 	}
 }
 
-func MutateAlleleExpensive(allele *Allele[int]) {
+func mutateAlleleExpensive(allele *Allele[int]) {
 	allele.mu.Lock()
 	defer allele.mu.Unlock()
 	for _, gene := range allele.genes {
-		MutateGeneExpensive(gene)
+		mutateGeneExpensive(gene)
 	}
 }
 
-func MutateChromosomeExpensive(chromosome *Chromosome[int]) {
+func mutateChromosomeExpensive(chromosome *Chromosome[int]) {
 	chromosome.mu.Lock()
 	defer chromosome.mu.Unlock()
 	for _, allele := range chromosome.alleles {
-		MutateAlleleExpensive(allele)
+		mutateAlleleExpensive(allele)
 	}
 }
 
-func MutateGenomeExpensive(genome *Genome[int]) {
+func mutateGenomeExpensive(genome *Genome[int]) {
 	genome.mu.Lock()
 	defer genome.mu.Unlock()
 	for _, chromosome := range genome.chromosomes {
-		MutateChromosomeExpensive(chromosome)
+		mutateChromosomeExpensive(chromosome)
 	}
 }
 
-func MeasureGeneFitnessExpensive(gene *Gene[int]) float64 {
+func measureGeneFitnessExpensive(gene *Gene[int]) float64 {
 	gene.mu.RLock()
 	defer gene.mu.RUnlock()
 	val := 42.0
@@ -148,7 +148,7 @@ func MeasureGeneFitnessExpensive(gene *Gene[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MeasureAlleleFitnessExpensive(allele *Allele[int]) float64 {
+func measureAlleleFitnessExpensive(allele *Allele[int]) float64 {
 	allele.mu.RLock()
 	defer allele.mu.RUnlock()
 	val := 42.0
@@ -162,7 +162,7 @@ func MeasureAlleleFitnessExpensive(allele *Allele[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MeasureChromosomeFitnessExpensive(chromosome *Chromosome[int]) float64 {
+func measureChromosomeFitnessExpensive(chromosome *Chromosome[int]) float64 {
 	chromosome.mu.RLock()
 	defer chromosome.mu.RUnlock()
 	val := 42.0
@@ -178,7 +178,7 @@ func MeasureChromosomeFitnessExpensive(chromosome *Chromosome[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func MeasureGenomeFitnessExpensive(genome *Genome[int]) float64 {
+func measureGenomeFitnessExpensive(genome *Genome[int]) float64 {
 	genome.mu.RLock()
 	defer genome.mu.RUnlock()
 	val := 42.0
@@ -212,8 +212,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeGene(OptimizationParams[int, Gene[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGeneFitness),
-				mutate:             NewOption(MutateGene),
+				measure_fitness:    NewOption(measureGeneFitness),
+				mutate:             NewOption(mutateGene),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 			})
@@ -247,8 +247,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeGene(OptimizationParams[int, Gene[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGeneFitness),
-				mutate:             NewOption(MutateGene),
+				measure_fitness:    NewOption(measureGeneFitness),
+				mutate:             NewOption(mutateGene),
 				max_iterations:     NewOption(1000),
 			})
 
@@ -284,8 +284,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeAllele(OptimizationParams[int, Allele[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureAlleleFitness),
-				mutate:             NewOption(MutateAllele),
+				measure_fitness:    NewOption(measureAlleleFitness),
+				mutate:             NewOption(mutateAllele),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
@@ -328,8 +328,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeAllele(OptimizationParams[int, Allele[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureAlleleFitness),
-				mutate:             NewOption(MutateAllele),
+				measure_fitness:    NewOption(measureAlleleFitness),
+				mutate:             NewOption(mutateAllele),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -374,8 +374,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeChromosome(OptimizationParams[int, Chromosome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureChromosomeFitness),
-				mutate:             NewOption(MutateChromosome),
+				measure_fitness:    NewOption(measureChromosomeFitness),
+				mutate:             NewOption(mutateChromosome),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
@@ -419,8 +419,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeChromosome(OptimizationParams[int, Chromosome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureChromosomeFitness),
-				mutate:             NewOption(MutateChromosome),
+				measure_fitness:    NewOption(measureChromosomeFitness),
+				mutate:             NewOption(mutateChromosome),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -466,8 +466,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeGenome(OptimizationParams[int, Genome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGenomeFitness),
-				mutate:             NewOption(MutateGenome),
+				measure_fitness:    NewOption(measureGenomeFitness),
+				mutate:             NewOption(mutateGenome),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
@@ -512,8 +512,8 @@ func TestOptimize(t *testing.T) {
 
 			n_iterations, final_population, err := OptimizeGenome(OptimizationParams[int, Genome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGenomeFitness),
-				mutate:             NewOption(MutateGenome),
+				measure_fitness:    NewOption(measureGenomeFitness),
+				mutate:             NewOption(mutateGenome),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -560,8 +560,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Gene[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGeneFitness),
-				mutate:             NewOption(MutateGene),
+				measure_fitness:    NewOption(measureGeneFitness),
+				mutate:             NewOption(mutateGene),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -601,8 +601,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Gene[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGeneFitnessExpensive),
-				mutate:             NewOption(MutateGeneExpensive),
+				measure_fitness:    NewOption(measureGeneFitnessExpensive),
+				mutate:             NewOption(mutateGeneExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -644,8 +644,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Allele[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureAlleleFitness),
-				mutate:             NewOption(MutateAllele),
+				measure_fitness:    NewOption(measureAlleleFitness),
+				mutate:             NewOption(mutateAllele),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -685,8 +685,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Allele[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureAlleleFitnessExpensive),
-				mutate:             NewOption(MutateAlleleExpensive),
+				measure_fitness:    NewOption(measureAlleleFitnessExpensive),
+				mutate:             NewOption(mutateAlleleExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -728,8 +728,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Chromosome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureChromosomeFitness),
-				mutate:             NewOption(MutateChromosome),
+				measure_fitness:    NewOption(measureChromosomeFitness),
+				mutate:             NewOption(mutateChromosome),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -769,8 +769,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Chromosome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureChromosomeFitnessExpensive),
-				mutate:             NewOption(MutateChromosomeExpensive),
+				measure_fitness:    NewOption(measureChromosomeFitnessExpensive),
+				mutate:             NewOption(mutateChromosomeExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -813,8 +813,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Genome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGenomeFitness),
-				mutate:             NewOption(MutateGenome),
+				measure_fitness:    NewOption(measureGenomeFitness),
+				mutate:             NewOption(mutateGenome),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -854,8 +854,8 @@ func TestTuneOptimize(t *testing.T) {
 			}
 			params := OptimizationParams[int, Genome[int]]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(MeasureGenomeFitnessExpensive),
-				mutate:             NewOption(MutateGenomeExpensive),
+				measure_fitness:    NewOption(measureGenomeFitnessExpensive),
+				mutate:             NewOption(mutateGenomeExpensive),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),

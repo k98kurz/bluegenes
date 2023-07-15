@@ -1,4 +1,4 @@
-package genetics
+package bluegenes
 
 import (
 	"fmt"
@@ -325,12 +325,12 @@ func TestGene(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Gene[int].Recombine failed with error: %s", err.Error())
 			}
-			parents := newSset[string]()
+			parents := newSet[string]()
 			for _, item := range g3.bases {
 				if contains(g1.bases, item) {
-					parents.Add(g1.name)
+					parents.add(g1.name)
 				} else if contains(g2.bases, item) {
-					parents.Add(g2.name)
+					parents.add(g2.name)
 				} else {
 					t.Fatalf("encountered item not from parents: %d", item)
 				}
@@ -379,7 +379,7 @@ func TestGene(t *testing.T) {
 
 	t.Run("MakeGene", func(t *testing.T) {
 		t.Parallel()
-		names := newSset[string]()
+		names := newSet[string]()
 		sequences := [][]int{}
 
 		for i := 0; i < 10; i++ {
@@ -390,15 +390,15 @@ func TestGene(t *testing.T) {
 			if err != nil {
 				t.Fatalf("MakeGene[int] failed with error: %v", err)
 			}
-			names.Add(g.name)
+			names.add(g.name)
 
 			if !containsSlice(sequences, g.bases) {
 				sequences = append(sequences, g.bases)
 			}
 		}
 
-		if names.Len() < 8 {
-			t.Fatalf("MakeGene[int] failed to produce enough random names: expected >= 8, observed %d", names.Len())
+		if names.len() < 8 {
+			t.Fatalf("MakeGene[int] failed to produce enough random names: expected >= 8, observed %d", names.len())
 		}
 
 		if len(sequences) < 8 {
@@ -443,20 +443,20 @@ func TestAllele(t *testing.T) {
 		t.Parallel()
 		a := firstAllele()
 		g, _ := rangeGene(0, 5, "range")
-		expected_names := newSset[string]()
+		expected_names := newSet[string]()
 
 		for _, g := range a.genes {
-			expected_names.Add(g.name)
+			expected_names.add(g.name)
 		}
-		expected_names.Add("range")
+		expected_names.add("range")
 
 		a.Insert(1, g)
-		observed_names := newSset[string]()
+		observed_names := newSet[string]()
 		for _, g = range a.genes {
-			observed_names.Add(g.name)
+			observed_names.add(g.name)
 		}
 
-		if !expected_names.Equal(observed_names) {
+		if !expected_names.equal(observed_names) {
 			t.Errorf("Allele[int].Insert failed: expected names %v, observed %v", expected_names, observed_names)
 		}
 	})
@@ -538,41 +538,41 @@ func TestAllele(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Allele[int].Recombine failed with error: %s", err.Error())
 		}
-		parents := newSset[string]()
-		dad_bases := newSset[int]()
-		mom_bases := newSset[int]()
+		parents := newSet[string]()
+		dad_bases := newSet[int]()
+		mom_bases := newSet[int]()
 		for _, gene := range dad.genes {
 			for _, base := range gene.bases {
-				dad_bases.Add(base)
+				dad_bases.add(base)
 			}
 		}
 		for _, gene := range mom.genes {
 			for _, base := range gene.bases {
-				mom_bases.Add(base)
+				mom_bases.add(base)
 			}
 		}
 		for _, gene := range child.genes {
 			for _, base := range gene.bases {
-				if dad_bases.Contains(base) {
-					parents.Add(dad.name)
-				} else if mom_bases.Contains(base) {
-					parents.Add(mom.name)
+				if dad_bases.contains(base) {
+					parents.add(dad.name)
+				} else if mom_bases.contains(base) {
+					parents.add(mom.name)
 				} else {
 					t.Fatalf("Allele[int].Recombine failed: encountered base not from parents: %v", base)
 				}
 			}
 		}
-		if parents.Len() < 2 {
+		if parents.len() < 2 {
 			fmt.Printf("mom: %v\n", mom.ToMap())
 			fmt.Printf("dad: %v\n", dad.ToMap())
 			fmt.Printf("child: %v\n", child.ToMap())
-			t.Fatalf("Allele[int].Recombine failed: expected bases from 2 parents, observed %d", parents.Len())
+			t.Fatalf("Allele[int].Recombine failed: expected bases from 2 parents, observed %d", parents.len())
 		}
 	})
 
 	t.Run("MakeAllele", func(t *testing.T) {
 		t.Parallel()
-		names := newSset[string]()
+		names := newSet[string]()
 		maps := make(map[string]map[string][]map[string][]int)
 
 		for i := 0; i < 10; i++ {
@@ -584,7 +584,7 @@ func TestAllele(t *testing.T) {
 			if err != nil {
 				t.Fatalf("MakeAllele[int] failed with error: %v", err)
 			}
-			names.Add(a.name)
+			names.add(a.name)
 
 			_, ok := maps[a.name]
 			if !ok {
@@ -592,8 +592,8 @@ func TestAllele(t *testing.T) {
 			}
 		}
 
-		if names.Len() < 8 {
-			t.Fatalf("MakeAllele[int] failed to produce enough random names: expected >= 8, observed %d", names.Len())
+		if names.len() < 8 {
+			t.Fatalf("MakeAllele[int] failed to produce enough random names: expected >= 8, observed %d", names.len())
 		}
 
 		if len(maps) < 8 {
@@ -651,20 +651,20 @@ func TestChromosome(t *testing.T) {
 		t.Parallel()
 		c := firstChromosome()
 		a, _ := rangeAllele(2, 0, 5, "range")
-		expected_names := newSset[string]()
+		expected_names := newSet[string]()
 
 		for _, a := range c.alleles {
-			expected_names.Add(a.name)
+			expected_names.add(a.name)
 		}
-		expected_names.Add("range")
+		expected_names.add("range")
 
 		c.Insert(1, a)
-		observed_names := newSset[string]()
+		observed_names := newSet[string]()
 		for _, a = range c.alleles {
-			observed_names.Add(a.name)
+			observed_names.add(a.name)
 		}
 
-		if !expected_names.Equal(observed_names) {
+		if !expected_names.equal(observed_names) {
 			t.Errorf("Chromosome[int].Insert failed: expected names %v, observed %v", expected_names, observed_names)
 		}
 	})
@@ -741,20 +741,20 @@ func TestChromosome(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Chromosome[int].Recombine failed with error: %s", err.Error())
 		}
-		parents := newSset[string]()
-		dad_bases := newSset[int]()
-		mom_bases := newSset[int]()
+		parents := newSet[string]()
+		dad_bases := newSet[int]()
+		mom_bases := newSet[int]()
 		for _, allele := range dad.alleles {
 			for _, gene := range allele.genes {
 				for _, base := range gene.bases {
-					dad_bases.Add(base)
+					dad_bases.add(base)
 				}
 			}
 		}
 		for _, allele := range mom.alleles {
 			for _, gene := range allele.genes {
 				for _, base := range gene.bases {
-					mom_bases.Add(base)
+					mom_bases.add(base)
 				}
 			}
 		}
@@ -762,27 +762,27 @@ func TestChromosome(t *testing.T) {
 		for _, allele := range child.alleles {
 			for _, gene := range allele.genes {
 				for _, base := range gene.bases {
-					if dad_bases.Contains(base) {
-						parents.Add(dad.name)
-					} else if mom_bases.Contains(base) {
-						parents.Add(mom.name)
+					if dad_bases.contains(base) {
+						parents.add(dad.name)
+					} else if mom_bases.contains(base) {
+						parents.add(mom.name)
 					} else {
 						t.Fatalf("Chromosome[int].Recombine failed: encountered base not from parents: %v", base)
 					}
 				}
 			}
 		}
-		if parents.Len() < 2 {
+		if parents.len() < 2 {
 			fmt.Printf("mom: %v\n", mom.ToMap())
 			fmt.Printf("dad: %v\n", dad.ToMap())
 			fmt.Printf("child: %v\n", child.ToMap())
-			t.Fatalf("Chromosome[int].Recombine failed: expected bases from 2 parents, observed %d", parents.Len())
+			t.Fatalf("Chromosome[int].Recombine failed: expected bases from 2 parents, observed %d", parents.len())
 		}
 	})
 
 	t.Run("MakeChromosome", func(t *testing.T) {
 		t.Parallel()
-		names := newSset[string]()
+		names := newSet[string]()
 		maps := make(map[string]map[string][]map[string][]map[string][]int)
 
 		for i := 0; i < 10; i++ {
@@ -795,7 +795,7 @@ func TestChromosome(t *testing.T) {
 			if err != nil {
 				t.Fatalf("MakeChromosome[int] failed with error: %v", err)
 			}
-			names.Add(a.name)
+			names.add(a.name)
 
 			_, ok := maps[a.name]
 			if !ok {
@@ -803,8 +803,8 @@ func TestChromosome(t *testing.T) {
 			}
 		}
 
-		if names.Len() < 8 {
-			t.Fatalf("MakeChromosome[int] failed to produce enough random names: expected >= 8, observed %d", names.Len())
+		if names.len() < 8 {
+			t.Fatalf("MakeChromosome[int] failed to produce enough random names: expected >= 8, observed %d", names.len())
 		}
 
 		if len(maps) < 8 {
@@ -864,20 +864,20 @@ func TestGenome(t *testing.T) {
 		t.Parallel()
 		g := firstGenome()
 		c, _ := rangeChromosome(1, 2, 0, 5, "range")
-		expected_names := newSset[string]()
+		expected_names := newSet[string]()
 
 		for _, c := range g.chromosomes {
-			expected_names.Add(c.name)
+			expected_names.add(c.name)
 		}
-		expected_names.Add("range")
+		expected_names.add("range")
 
 		g.Insert(1, c)
-		observed_names := newSset[string]()
+		observed_names := newSet[string]()
 		for _, c = range g.chromosomes {
-			observed_names.Add(c.name)
+			observed_names.add(c.name)
 		}
 
-		if !expected_names.Equal(observed_names) {
+		if !expected_names.equal(observed_names) {
 			t.Errorf("Genome[int].Insert failed: expected names %v, observed %v", expected_names, observed_names)
 		}
 	})
@@ -949,14 +949,14 @@ func TestGenome(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Genome[int].Recombine failed with error: %s", err.Error())
 		}
-		parents := newSset[string]()
-		dad_bases := newSset[int]()
-		mom_bases := newSset[int]()
+		parents := newSet[string]()
+		dad_bases := newSet[int]()
+		mom_bases := newSet[int]()
 		for _, chromosome := range dad.chromosomes {
 			for _, allele := range chromosome.alleles {
 				for _, gene := range allele.genes {
 					for _, base := range gene.bases {
-						dad_bases.Add(base)
+						dad_bases.add(base)
 					}
 				}
 			}
@@ -965,7 +965,7 @@ func TestGenome(t *testing.T) {
 			for _, allele := range chromosome.alleles {
 				for _, gene := range allele.genes {
 					for _, base := range gene.bases {
-						mom_bases.Add(base)
+						mom_bases.add(base)
 					}
 				}
 			}
@@ -975,10 +975,10 @@ func TestGenome(t *testing.T) {
 			for _, allele := range chromosome.alleles {
 				for _, gene := range allele.genes {
 					for _, base := range gene.bases {
-						if dad_bases.Contains(base) {
-							parents.Add(dad.name)
-						} else if mom_bases.Contains(base) {
-							parents.Add(mom.name)
+						if dad_bases.contains(base) {
+							parents.add(dad.name)
+						} else if mom_bases.contains(base) {
+							parents.add(mom.name)
 						} else {
 							t.Fatalf("Genome[int].Recombine failed: encountered base not from parents: %v", base)
 						}
@@ -986,17 +986,17 @@ func TestGenome(t *testing.T) {
 				}
 			}
 		}
-		if parents.Len() < 2 {
+		if parents.len() < 2 {
 			fmt.Printf("mom: %v\n", mom.ToMap())
 			fmt.Printf("dad: %v\n", dad.ToMap())
 			fmt.Printf("child: %v\n", child.ToMap())
-			t.Fatalf("Genome[int].Recombine failed: expected bases from 2 parents, observed %d", parents.Len())
+			t.Fatalf("Genome[int].Recombine failed: expected bases from 2 parents, observed %d", parents.len())
 		}
 	})
 
 	t.Run("MakeGenome", func(t *testing.T) {
 		t.Parallel()
-		names := newSset[string]()
+		names := newSet[string]()
 		maps := make(map[string]map[string][]map[string][]map[string][]map[string][]int)
 
 		for i := 0; i < 10; i++ {
@@ -1010,7 +1010,7 @@ func TestGenome(t *testing.T) {
 			if err != nil {
 				t.Fatalf("MakeGenome[int] failed with error: %v", err)
 			}
-			names.Add(g.name)
+			names.add(g.name)
 
 			_, ok := maps[g.name]
 			if !ok {
@@ -1018,8 +1018,8 @@ func TestGenome(t *testing.T) {
 			}
 		}
 
-		if names.Len() < 8 {
-			t.Fatalf("MakeGenome[int] failed to produce enough random names: expected >= 8, observed %d", names.Len())
+		if names.len() < 8 {
+			t.Fatalf("MakeGenome[int] failed to produce enough random names: expected >= 8, observed %d", names.len())
 		}
 
 		if len(maps) < 8 {
