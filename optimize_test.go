@@ -49,6 +49,21 @@ func mutateGenome(genome *Genome[int]) {
 	}
 }
 
+func mutateGeneticMaterial(code GeneticMaterial[int]) {
+	if code.gene.ok() {
+		mutateGene(code.gene.val)
+	}
+	if code.allele.ok() {
+		mutateAllele(code.allele.val)
+	}
+	if code.chromosome.ok() {
+		mutateChromosome(code.chromosome.val)
+	}
+	if code.genome.ok() {
+		mutateGenome(code.genome.val)
+	}
+}
+
 func measureGeneFitness(gene *Gene[int]) float64 {
 	gene.mu.RLock()
 	defer gene.mu.RUnlock()
@@ -90,6 +105,29 @@ func measureGenomeFitness(genome *Genome[int]) float64 {
 		}
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
+}
+
+func measureGeneticMaterialFitness(code GeneticMaterial[int]) float64 {
+	fitness := 0.0
+	fitness_count := 0
+	if code.gene.ok() {
+		fitness += measureGeneFitness(code.gene.val)
+		fitness_count++
+	}
+	if code.allele.ok() {
+		fitness += measureAlleleFitness(code.allele.val)
+		fitness_count++
+	}
+	if code.chromosome.ok() {
+		fitness += measureChromosomeFitness(code.chromosome.val)
+		fitness_count++
+	}
+	if code.genome.ok() {
+		fitness += measureGenomeFitness(code.genome.val)
+		fitness_count++
+	}
+
+	return fitness / float64(fitness_count)
 }
 
 func mutateGeneExpensive(gene *Gene[int]) {
@@ -201,69 +239,91 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				base_factory: NewOption(base_factory),
+				n_bases:       NewOption(uint(5)),
+				n_genes:       NewOption(uint(4)),
+				n_alleles:     NewOption(uint(3)),
+				n_chromosomes: NewOption(uint(2)),
+				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Gene[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, gene)
+				initial_population = append(initial_population, GeneticMaterial[int]{gene: NewOption(gene)})
 			}
 
-			n_iterations, final_population, err := OptimizeGene(OptimizationParams[int, Gene[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGeneFitness),
-				mutate:             NewOption(mutateGene),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
+				recombination_opts: NewOption(RecombineOptions{
+					recombine_genes:       NewOption(true),
+					match_genes:           NewOption(false),
+					recombine_alleles:     NewOption(true),
+					match_alleles:         NewOption(false),
+					recombine_chromosomes: NewOption(true),
+					match_chromosomes:     NewOption(false),
+				}),
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeGene failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Gene[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeGene exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Gene[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeGene failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Gene[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				base_factory: NewOption(base_factory),
+				n_bases:       NewOption(uint(5)),
+				n_genes:       NewOption(uint(4)),
+				n_alleles:     NewOption(uint(3)),
+				n_chromosomes: NewOption(uint(2)),
+				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Gene[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
 				gene, _ := MakeGene(opts)
-				initial_population = append(initial_population, gene)
+				initial_population = append(initial_population, GeneticMaterial[int]{gene: NewOption(gene)})
 			}
 
-			n_iterations, final_population, err := OptimizeGene(OptimizationParams[int, Gene[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGeneFitness),
-				mutate:             NewOption(mutateGene),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
+				recombination_opts: NewOption(RecombineOptions{
+					recombine_genes:       NewOption(true),
+					match_genes:           NewOption(false),
+					recombine_alleles:     NewOption(true),
+					match_alleles:         NewOption(false),
+					recombine_chromosomes: NewOption(true),
+					match_chromosomes:     NewOption(false),
+				}),
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeGene failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Gene[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeGene exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Gene[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeGene failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Gene[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 	})
@@ -272,20 +332,22 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				n_genes:      NewOption(uint(4)),
-				base_factory: NewOption(base_factory),
+				n_bases:       NewOption(uint(5)),
+				n_genes:       NewOption(uint(4)),
+				n_alleles:     NewOption(uint(3)),
+				n_chromosomes: NewOption(uint(2)),
+				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Allele[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeAllele(opts)
-				initial_population = append(initial_population, gene)
+				allele, _ := MakeAllele(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{allele: NewOption(allele)})
 			}
 
-			n_iterations, final_population, err := OptimizeAllele(OptimizationParams[int, Allele[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureAlleleFitness),
-				mutate:             NewOption(mutateAllele),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
@@ -299,37 +361,39 @@ func TestOptimize(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeAllele failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Allele[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeAllele exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Allele[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeAllele failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				n_genes:      NewOption(uint(4)),
-				base_factory: NewOption(base_factory),
+				n_bases:       NewOption(uint(5)),
+				n_genes:       NewOption(uint(4)),
+				n_alleles:     NewOption(uint(3)),
+				n_chromosomes: NewOption(uint(2)),
+				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Allele[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeAllele(opts)
-				initial_population = append(initial_population, gene)
+				allele, _ := MakeAllele(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{allele: NewOption(allele)})
 			}
 
-			n_iterations, final_population, err := OptimizeAllele(OptimizationParams[int, Allele[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureAlleleFitness),
-				mutate:             NewOption(mutateAllele),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -342,17 +406,17 @@ func TestOptimize(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeAllele failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Allele[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeAllele exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Allele[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeAllele failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 	})
@@ -361,21 +425,22 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				n_genes:      NewOption(uint(4)),
-				n_alleles:    NewOption(uint(3)),
-				base_factory: NewOption(base_factory),
+				n_bases:       NewOption(uint(5)),
+				n_genes:       NewOption(uint(4)),
+				n_alleles:     NewOption(uint(3)),
+				n_chromosomes: NewOption(uint(2)),
+				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Chromosome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, gene)
+				chromosome, _ := MakeChromosome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{chromosome: NewOption(chromosome)})
 			}
 
-			n_iterations, final_population, err := OptimizeChromosome(OptimizationParams[int, Chromosome[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureChromosomeFitness),
-				mutate:             NewOption(mutateChromosome),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
@@ -389,38 +454,39 @@ func TestOptimize(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeChromosome failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Chromosome[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeChromosome exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Chromosome[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeChromosome failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Chromosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
 			t.Parallel()
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
-				n_bases:      NewOption(uint(5)),
-				n_genes:      NewOption(uint(4)),
-				n_alleles:    NewOption(uint(3)),
-				base_factory: NewOption(base_factory),
+				n_bases:       NewOption(uint(5)),
+				n_genes:       NewOption(uint(4)),
+				n_alleles:     NewOption(uint(3)),
+				n_chromosomes: NewOption(uint(2)),
+				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Chromosome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeChromosome(opts)
-				initial_population = append(initial_population, gene)
+				chromosome, _ := MakeChromosome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{chromosome: NewOption(chromosome)})
 			}
 
-			n_iterations, final_population, err := OptimizeChromosome(OptimizationParams[int, Chromosome[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureChromosomeFitness),
-				mutate:             NewOption(mutateChromosome),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -433,22 +499,22 @@ func TestOptimize(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeChromosome failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Chromosome[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeChromosome exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Chromosome[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeChromosome failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Chromosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 	})
 
-	t.Run("Genome", func(t *testing.T) {
+	t.Run("Allele", func(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
@@ -458,16 +524,16 @@ func TestOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Genome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeGenome(opts)
-				initial_population = append(initial_population, gene)
+				genome, _ := MakeGenome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{genome: NewOption(genome)})
 			}
 
-			n_iterations, final_population, err := OptimizeGenome(OptimizationParams[int, Genome[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGenomeFitness),
-				mutate:             NewOption(mutateGenome),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				parallel_count:     NewOption(10),
 				recombination_opts: NewOption(RecombineOptions{
@@ -481,17 +547,17 @@ func TestOptimize(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeGenome failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Genome[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeGenome exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Genome[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeGenome failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Genome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -504,16 +570,16 @@ func TestOptimize(t *testing.T) {
 				n_chromosomes: NewOption(uint(2)),
 				base_factory:  NewOption(base_factory),
 			}
-			initial_population := []*Genome[int]{}
+			initial_population := []GeneticMaterial[int]{}
 			for i := 0; i < 10; i++ {
-				gene, _ := MakeGenome(opts)
-				initial_population = append(initial_population, gene)
+				genome, _ := MakeGenome(opts)
+				initial_population = append(initial_population, GeneticMaterial[int]{genome: NewOption(genome)})
 			}
 
-			n_iterations, final_population, err := OptimizeGenome(OptimizationParams[int, Genome[int]]{
+			n_iterations, final_population, err := OptimizeGeneticMaterial(GMOptimizationParams[int]{
 				initial_population: NewOption(initial_population),
-				measure_fitness:    NewOption(measureGenomeFitness),
-				mutate:             NewOption(mutateGenome),
+				measure_fitness:    NewOption(measureGeneticMaterialFitness),
+				mutate:             NewOption(mutateGeneticMaterial),
 				max_iterations:     NewOption(1000),
 				recombination_opts: NewOption(RecombineOptions{
 					recombine_genes:       NewOption(true),
@@ -526,17 +592,17 @@ func TestOptimize(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("OptimizeGenome failed with error: %v", err)
+				t.Fatalf("OptimizeGeneticMaterial for Genome[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("OptimizeGenome exceeded max_iterations with %d iterations", n_iterations)
+				t.Errorf("OptimizeGeneticMaterial for Genome[int] exceeded max_iterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.score < 0.9 {
-				t.Errorf("OptimizeGenome failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
+				t.Errorf("OptimizeGeneticMaterial for Genome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.score)
 			}
 		})
 	})

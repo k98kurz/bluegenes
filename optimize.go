@@ -12,10 +12,50 @@ type Code[T comparable] interface {
 	Gene[T] | Allele[T] | Chromosome[T] | Genome[T]
 }
 
+type GeneticMaterial[T comparable] struct {
+	gene       Option[*Gene[T]]
+	allele     Option[*Allele[T]]
+	chromosome Option[*Chromosome[T]]
+	genome     Option[*Genome[T]]
+}
+
+func (self GeneticMaterial[T]) Recombine(other GeneticMaterial[T], recombinationOpts RecombineOptions) GeneticMaterial[T] {
+	child := GeneticMaterial[T]{}
+	if self.gene.ok() && other.gene.ok() {
+		child.gene.val, _ = self.gene.val.Recombine(other.gene.val, []int{}, recombinationOpts)
+		child.gene.isSet = true
+	}
+	if self.allele.ok() && other.allele.ok() {
+		child.allele.val, _ = self.allele.val.Recombine(other.allele.val, []int{}, recombinationOpts)
+		child.allele.isSet = true
+	}
+	if self.chromosome.ok() && other.chromosome.ok() {
+		child.chromosome.val, _ = self.chromosome.val.Recombine(other.chromosome.val, []int{}, recombinationOpts)
+		child.chromosome.isSet = true
+	}
+	if self.genome.ok() && other.genome.ok() {
+		child.genome.val, _ = self.genome.val.Recombine(other.genome.val, []int{}, recombinationOpts)
+		child.genome.isSet = true
+	}
+	return child
+}
+
 type OptimizationParams[T comparable, C Code[T]] struct {
 	measure_fitness        Option[func(*C) float64]
 	mutate                 Option[func(*C)]
 	initial_population     Option[[]*C]
+	max_iterations         Option[int]
+	population_size        Option[int]
+	parents_per_generation Option[int]
+	fitness_target         Option[float64]
+	recombination_opts     Option[RecombineOptions]
+	parallel_count         Option[int]
+}
+
+type GMOptimizationParams[T comparable] struct {
+	measure_fitness        Option[func(GeneticMaterial[T]) float64]
+	mutate                 Option[func(GeneticMaterial[T])]
+	initial_population     Option[[]GeneticMaterial[T]]
 	max_iterations         Option[int]
 	population_size        Option[int]
 	parents_per_generation Option[int]
@@ -50,6 +90,11 @@ type ScoredGenome[T comparable] struct {
 	score  float64
 }
 
+type ScoredGeneticMaterial[T comparable] struct {
+	code  GeneticMaterial[T]
+	score float64
+}
+
 func SortScoredGenes[T comparable](scores []ScoredGene[T]) {
 	sort.SliceStable(scores, func(i, j int) bool {
 		return scores[i].score > scores[j].score
@@ -69,6 +114,12 @@ func SortScoredChromosomes[T comparable](scores []ScoredChromosome[T]) {
 }
 
 func SortScoredGenomes[T comparable](scores []ScoredGenome[T]) {
+	sort.SliceStable(scores, func(i, j int) bool {
+		return scores[i].score > scores[j].score
+	})
+}
+
+func SortScoredGeneticMaterials[T comparable](scores []ScoredGeneticMaterial[T]) {
 	sort.SliceStable(scores, func(i, j int) bool {
 		return scores[i].score > scores[j].score
 	})
@@ -163,6 +214,28 @@ func WeightedParentGenomes[T comparable](scores []ScoredGenome[T]) []*Genome[T] 
 }
 
 func WeightedRandomParentGenomes[T comparable](parents []*Genome[T]) (*Genome[T], *Genome[T]) {
+	dad_and_mom := RandomChoices(parents, 2)
+	dad := dad_and_mom[0]
+	mom := dad_and_mom[1]
+	for mom == dad {
+		mom = RandomChoices(parents, 1)[0]
+	}
+	return dad, mom
+}
+
+func WeightedParentGeneticMaterials[T comparable](scores []ScoredGeneticMaterial[T]) []GeneticMaterial[T] {
+	parents := []GeneticMaterial[T]{}
+	weight := len(scores)
+	for i, l := 0, len(scores); i < l; i++ {
+		for j := 0; j < weight; j++ {
+			parents = append(parents, scores[i].code)
+		}
+		weight--
+	}
+	return parents
+}
+
+func WeightedRandomParentGeneticMaterials[T comparable](parents []GeneticMaterial[T]) (GeneticMaterial[T], GeneticMaterial[T]) {
 	dad_and_mom := RandomChoices(parents, 2)
 	dad := dad_and_mom[0]
 	mom := dad_and_mom[1]
@@ -721,6 +794,144 @@ func optimizeGenomeSequentially[T comparable](params OptimizationParams[T, Genom
 		}
 
 		SortScoredGenomes(scores)
+		best_fitness = scores[0].score
+	}
+
+	return generation_count, scores, nil
+}
+
+func OptimizeGeneticMaterial[T comparable](params GMOptimizationParams[T]) (int, []ScoredGeneticMaterial[T], error) {
+	generation_count := 0
+	scores := []ScoredGeneticMaterial[T]{}
+
+	if !params.initial_population.ok() {
+		return generation_count, scores, missingParameterError{"params.initial_population"}
+	}
+	if len(params.initial_population.val) < 1 {
+		return generation_count, scores, anError{"params.initial_population must have len > 0"}
+	}
+	if !params.measure_fitness.ok() {
+		return generation_count, scores, missingParameterError{"params.measure_fitness"}
+	}
+	if !params.mutate.ok() {
+		return generation_count, scores, missingParameterError{"params.mutate"}
+	}
+	if !params.max_iterations.ok() {
+		params.max_iterations.val = 1000
+	}
+	if !params.population_size.ok() {
+		params.population_size.val = 100
+	}
+	if !params.parents_per_generation.ok() {
+		params.parents_per_generation.val = 10
+	}
+	if !params.fitness_target.ok() {
+		params.fitness_target.val = float64(1.0)
+	}
+	if params.parallel_count.ok() && params.population_size.val/params.parallel_count.val < 1 {
+		params.population_size.val *= 2
+	}
+	if params.parents_per_generation.val > params.population_size.val {
+		params.parents_per_generation.val = params.population_size.val / 10
+	}
+
+	if params.parallel_count.ok() {
+		return optimizeGeneticMaterialInParallel(params)
+	} else {
+		return optimizeGeneticMaterialSequentially(params)
+	}
+}
+
+func optimizeGeneticMaterialInParallel[T comparable](params GMOptimizationParams[T]) (int, []ScoredGeneticMaterial[T], error) {
+	generation_count := 0
+	scores := []ScoredGeneticMaterial[T]{}
+	var wg sync.WaitGroup
+	work_done := make(chan ScoredGeneticMaterial[T], params.population_size.val+10)
+	done_signal := make(chan bool, params.parallel_count.val)
+	measure_fitness := params.measure_fitness.val
+	mutate := params.mutate.val
+	for _, genome := range params.initial_population.val {
+		score := ScoredGeneticMaterial[T]{code: genome, score: measure_fitness(genome)}
+		scores = append(scores, score)
+	}
+	SortScoredGeneticMaterials(scores)
+	best_fitness := scores[0].score
+
+	for generation_count < params.max_iterations.val && best_fitness < params.fitness_target.val {
+		generation_count++
+		scores = scores[:params.parents_per_generation.val]
+		parents := WeightedParentGeneticMaterials(scores)
+		children_to_create := (params.population_size.val - params.parents_per_generation.val) / params.parallel_count.val
+
+		for i := params.parallel_count.val; i > 0; i-- {
+			diff := 0
+			if i == 1 {
+				diff = params.population_size.val
+				diff -= params.parallel_count.val * children_to_create
+				diff -= params.parents_per_generation.val
+			}
+			wg.Add(1)
+			go func(count int, parents []GeneticMaterial[T], work_done chan<- ScoredGeneticMaterial[T], done_signal chan<- bool) {
+				defer wg.Done()
+				for c := 0; c < count; c++ {
+					mom, dad := WeightedRandomParentGeneticMaterials(parents)
+					child := dad.Recombine(mom, params.recombination_opts.val)
+					mutate(child)
+					s := measure_fitness(child)
+					work_done <- ScoredGeneticMaterial[T]{code: child, score: s}
+				}
+				done_signal <- true
+			}(children_to_create+diff, parents, work_done, done_signal)
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			finished := 0
+			for finished < params.parallel_count.val {
+				select {
+				case child := <-work_done:
+					scores = append(scores, child)
+				case <-done_signal:
+					finished += 1
+				default:
+				}
+			}
+		}()
+
+		wg.Wait()
+		SortScoredGeneticMaterials(scores)
+		best_fitness = scores[0].score
+	}
+
+	return generation_count, scores, nil
+}
+
+func optimizeGeneticMaterialSequentially[T comparable](params GMOptimizationParams[T]) (int, []ScoredGeneticMaterial[T], error) {
+	generation_count := 0
+	scores := []ScoredGeneticMaterial[T]{}
+	measure_fitness := params.measure_fitness.val
+	mutate := params.mutate.val
+	for _, code := range params.initial_population.val {
+		score := ScoredGeneticMaterial[T]{code: code, score: measure_fitness(code)}
+		scores = append(scores, score)
+	}
+	SortScoredGeneticMaterials(scores)
+	best_fitness := scores[0].score
+
+	for generation_count < params.max_iterations.val && best_fitness < params.fitness_target.val {
+		generation_count++
+		scores = scores[:params.parents_per_generation.val]
+		parents := WeightedParentGeneticMaterials(scores)
+		for len(scores) < params.population_size.val {
+			mom, dad := WeightedRandomParentGeneticMaterials(parents)
+			child := dad.Recombine(mom, params.recombination_opts.val)
+			mutate(child)
+			s := measure_fitness(child)
+			scores = append(scores, ScoredGeneticMaterial[T]{code: child, score: s})
+		}
+
+		SortScoredGeneticMaterials(scores)
 		best_fitness = scores[0].score
 	}
 
