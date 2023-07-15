@@ -125,11 +125,11 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, option
 		swapped = !swapped
 	}
 
-	if !options.RecombineAlleles.ok() || options.RecombineAlleles.val {
+	if !options.RecombineAlleles.Ok() || options.RecombineAlleles.Val {
 		for i := 0; i < min_size; i++ {
-			if (options.MatchAlleles.ok() &&
-				!options.MatchAlleles.val) ||
-				!options.MatchAlleles.ok() ||
+			if (options.MatchAlleles.Ok() &&
+				!options.MatchAlleles.Val) ||
+				!options.MatchAlleles.Ok() ||
 				alleles[i].Name == other_alleles[i].Name {
 				allele, err := alleles[i].Recombine(other_alleles[i], []int{}, options)
 				if err != nil {

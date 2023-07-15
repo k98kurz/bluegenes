@@ -125,11 +125,11 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 		swapped = !swapped
 	}
 
-	if !options.RecombineChromosomes.ok() || options.RecombineChromosomes.val {
+	if !options.RecombineChromosomes.Ok() || options.RecombineChromosomes.Val {
 		for i := 0; i < min_size; i++ {
-			if (options.MatchChromosomes.ok() &&
-				!options.MatchChromosomes.val) ||
-				!options.MatchChromosomes.ok() ||
+			if (options.MatchChromosomes.Ok() &&
+				!options.MatchChromosomes.Val) ||
+				!options.MatchChromosomes.Ok() ||
 				chromosomes[i].Name == other_chromosomes[i].Name {
 				chromosome, err := chromosomes[i].Recombine(other_chromosomes[i], []int{}, options)
 				if err != nil {

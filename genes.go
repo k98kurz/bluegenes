@@ -50,18 +50,18 @@ type RecombineOptions struct {
 
 func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
 	g := &Gene[T]{}
-	if !options.NBases.ok() {
+	if !options.NBases.Ok() {
 		return g, missingParameterError{"options.NBases"}
 	}
-	if !options.BaseFactory.ok() {
+	if !options.BaseFactory.Ok() {
 		return g, missingParameterError{"options.BaseFactory"}
 	}
-	for i := 0; i < int(options.NBases.val); i++ {
-		b := options.BaseFactory.val()
+	for i := 0; i < int(options.NBases.Val); i++ {
+		b := options.BaseFactory.Val()
 		g.Append(b)
 	}
-	if options.Name.ok() {
-		g.Name = options.Name.val
+	if options.Name.Ok() {
+		g.Name = options.Name.Val
 	} else {
 		g.Name, _ = RandomName(4)
 	}
@@ -70,24 +70,24 @@ func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
 
 func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
 	a := &Allele[T]{}
-	if !options.NGenes.ok() {
+	if !options.NGenes.Ok() {
 		return a, missingParameterError{"options.NGenes"}
 	}
-	if !options.NBases.ok() {
+	if !options.NBases.Ok() {
 		return a, missingParameterError{"options.NBases"}
 	}
-	if !options.BaseFactory.ok() {
+	if !options.BaseFactory.Ok() {
 		return a, missingParameterError{"options.BaseFactory"}
 	}
-	for i := 0; i < int(options.NGenes.val); i++ {
+	for i := 0; i < int(options.NGenes.Val); i++ {
 		g, err := MakeGene(options)
 		if err != nil {
 			return a, err
 		}
 		a.Append(g)
 	}
-	if options.Name.ok() {
-		a.Name = options.Name.val
+	if options.Name.Ok() {
+		a.Name = options.Name.Val
 	} else {
 		a.Name, _ = RandomName(3)
 	}
@@ -96,27 +96,27 @@ func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
 
 func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error) {
 	c := &Chromosome[T]{}
-	if !options.NAlleles.ok() {
+	if !options.NAlleles.Ok() {
 		return c, missingParameterError{"options.NAlleles"}
 	}
-	if !options.NGenes.ok() {
+	if !options.NGenes.Ok() {
 		return c, missingParameterError{"options.NGenes"}
 	}
-	if !options.NBases.ok() {
+	if !options.NBases.Ok() {
 		return c, missingParameterError{"options.NBases"}
 	}
-	if !options.BaseFactory.ok() {
+	if !options.BaseFactory.Ok() {
 		return c, missingParameterError{"options.BaseFactory"}
 	}
-	for i := 0; i < int(options.NAlleles.val); i++ {
+	for i := 0; i < int(options.NAlleles.Val); i++ {
 		a, err := MakeAllele(options)
 		if err != nil {
 			return c, err
 		}
 		c.Append(a)
 	}
-	if options.Name.ok() {
-		c.Name = options.Name.val
+	if options.Name.Ok() {
+		c.Name = options.Name.Val
 	} else {
 		c.Name, _ = RandomName(3)
 	}
@@ -125,30 +125,30 @@ func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error
 
 func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error) {
 	g := &Genome[T]{}
-	if !options.NChromosomes.ok() {
+	if !options.NChromosomes.Ok() {
 		return g, missingParameterError{"options.NAlleles"}
 	}
-	if !options.NAlleles.ok() {
+	if !options.NAlleles.Ok() {
 		return g, missingParameterError{"options.NAlleles"}
 	}
-	if !options.NGenes.ok() {
+	if !options.NGenes.Ok() {
 		return g, missingParameterError{"options.NGenes"}
 	}
-	if !options.NBases.ok() {
+	if !options.NBases.Ok() {
 		return g, missingParameterError{"options.NBases"}
 	}
-	if !options.BaseFactory.ok() {
+	if !options.BaseFactory.Ok() {
 		return g, missingParameterError{"options.BaseFactory"}
 	}
-	for i := 0; i < int(options.NAlleles.val); i++ {
+	for i := 0; i < int(options.NAlleles.Val); i++ {
 		c, err := MakeChromosome(options)
 		if err != nil {
 			return g, err
 		}
 		g.Append(c)
 	}
-	if options.Name.ok() {
-		g.Name = options.Name.val
+	if options.Name.Ok() {
+		g.Name = options.Name.Val
 	} else {
 		g.Name, _ = RandomName(3)
 	}

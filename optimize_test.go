@@ -50,17 +50,17 @@ func MutateGenome(genome *Genome[int]) {
 }
 
 func MutateCode(code Code[int]) {
-	if code.Gene.ok() {
-		MutateGene(code.Gene.val)
+	if code.Gene.Ok() {
+		MutateGene(code.Gene.Val)
 	}
-	if code.Allele.ok() {
-		MutateAllele(code.Allele.val)
+	if code.Allele.Ok() {
+		MutateAllele(code.Allele.Val)
 	}
-	if code.Chromosome.ok() {
-		MutateChromosome(code.Chromosome.val)
+	if code.Chromosome.Ok() {
+		MutateChromosome(code.Chromosome.Val)
 	}
-	if code.Genome.ok() {
-		MutateGenome(code.Genome.val)
+	if code.Genome.Ok() {
+		MutateGenome(code.Genome.Val)
 	}
 }
 
@@ -110,20 +110,20 @@ func measureGenomeFitness(genome *Genome[int]) float64 {
 func measureCodeFitness(code Code[int]) float64 {
 	fitness := 0.0
 	fitness_count := 0
-	if code.Gene.ok() {
-		fitness += measureGeneFitness(code.Gene.val)
+	if code.Gene.Ok() {
+		fitness += measureGeneFitness(code.Gene.Val)
 		fitness_count++
 	}
-	if code.Allele.ok() {
-		fitness += measureAlleleFitness(code.Allele.val)
+	if code.Allele.Ok() {
+		fitness += measureAlleleFitness(code.Allele.Val)
 		fitness_count++
 	}
-	if code.Chromosome.ok() {
-		fitness += measureChromosomeFitness(code.Chromosome.val)
+	if code.Chromosome.Ok() {
+		fitness += measureChromosomeFitness(code.Chromosome.Val)
 		fitness_count++
 	}
-	if code.Genome.ok() {
-		fitness += measureGenomeFitness(code.Genome.val)
+	if code.Genome.Ok() {
+		fitness += measureGenomeFitness(code.Genome.Val)
 		fitness_count++
 	}
 
@@ -135,17 +135,17 @@ func MutateCodeExpensive(code Code[int]) {
 	for i := 0; i < 1000; i++ {
 		val /= 6.9
 	}
-	if code.Gene.ok() {
-		MutateGene(code.Gene.val)
+	if code.Gene.Ok() {
+		MutateGene(code.Gene.Val)
 	}
-	if code.Allele.ok() {
-		MutateAllele(code.Allele.val)
+	if code.Allele.Ok() {
+		MutateAllele(code.Allele.Val)
 	}
-	if code.Chromosome.ok() {
-		MutateChromosome(code.Chromosome.val)
+	if code.Chromosome.Ok() {
+		MutateChromosome(code.Chromosome.Val)
 	}
-	if code.Genome.ok() {
-		MutateGenome(code.Genome.val)
+	if code.Genome.Ok() {
+		MutateGenome(code.Genome.Val)
 	}
 }
 
@@ -156,20 +156,20 @@ func measureCodeFitnessExpensive(code Code[int]) float64 {
 	}
 	fitness := 0.0
 	fitness_count := 0
-	if code.Gene.ok() {
-		fitness += measureGeneFitness(code.Gene.val)
+	if code.Gene.Ok() {
+		fitness += measureGeneFitness(code.Gene.Val)
 		fitness_count++
 	}
-	if code.Allele.ok() {
-		fitness += measureAlleleFitness(code.Allele.val)
+	if code.Allele.Ok() {
+		fitness += measureAlleleFitness(code.Allele.Val)
 		fitness_count++
 	}
-	if code.Chromosome.ok() {
-		fitness += measureChromosomeFitness(code.Chromosome.val)
+	if code.Chromosome.Ok() {
+		fitness += measureChromosomeFitness(code.Chromosome.Val)
 		fitness_count++
 	}
-	if code.Genome.ok() {
-		fitness += measureGenomeFitness(code.Genome.val)
+	if code.Genome.Ok() {
+		fitness += measureGenomeFitness(code.Genome.Val)
 		fitness_count++
 	}
 

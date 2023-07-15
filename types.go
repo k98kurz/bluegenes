@@ -37,22 +37,22 @@ func (e missingParameterError) Error() string {
 }
 
 type Option[T any] struct {
-	isSet bool
-	val   T
+	IsSet bool
+	Val   T
 }
 
-func (o Option[T]) ok() bool {
-	return o.isSet
+func (o Option[T]) Ok() bool {
+	return o.IsSet
 }
 
 func NewOption[T any](val ...T) Option[T] {
 	if len(val) > 0 {
 		return Option[T]{
-			isSet: true,
-			val:   val[0],
+			IsSet: true,
+			Val:   val[0],
 		}
 	}
-	return Option[T]{isSet: false}
+	return Option[T]{IsSet: false}
 }
 
 func min[T Ordered](items ...T) (T, error) {
