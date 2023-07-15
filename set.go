@@ -1,27 +1,27 @@
 package genetics
 
-type Set[T comparable] struct {
+type set[T comparable] struct {
 	items map[T]bool
 }
 
-func NewSet[T comparable](items ...T) Set[T] {
-	var set Set[T]
+func newSset[T comparable](items ...T) set[T] {
+	var set set[T]
 	set.items = make(map[T]bool)
 	set.Fill(items...)
 	return set
 }
 
-func (s Set[T]) Add(item T) {
+func (s set[T]) Add(item T) {
 	s.items[item] = true
 }
 
-func (s Set[T]) Fill(items ...T) {
+func (s set[T]) Fill(items ...T) {
 	for _, i := range items {
 		s.Add(i)
 	}
 }
 
-func (s Set[T]) Equal(other Set[T]) bool {
+func (s set[T]) Equal(other set[T]) bool {
 	for item := range other.items {
 		if !s.Contains(item) {
 			return false
@@ -30,21 +30,21 @@ func (s Set[T]) Equal(other Set[T]) bool {
 	return true
 }
 
-func (s Set[T]) Contains(item T) bool {
+func (s set[T]) Contains(item T) bool {
 	_, ok := s.items[item]
 	return ok
 }
 
-func (s Set[T]) Len() int {
+func (s set[T]) Len() int {
 	return len(s.items)
 }
 
-func (s Set[T]) Remove(item T) {
+func (s set[T]) Remove(item T) {
 	delete(s.items, item)
 }
 
-func (s Set[T]) Union(other Set[T]) Set[T] {
-	set := NewSet[T]()
+func (s set[T]) Union(other set[T]) set[T] {
+	set := newSset[T]()
 	items := make([]T, 0, len(s.items))
 	set.Fill(items...)
 	items = make([]T, 0, len(other.items))
@@ -52,8 +52,8 @@ func (s Set[T]) Union(other Set[T]) Set[T] {
 	return set
 }
 
-func (s Set[T]) Intersection(other Set[T]) Set[T] {
-	set := NewSet[T]()
+func (s set[T]) Intersection(other set[T]) set[T] {
+	set := newSset[T]()
 	items := make([]T, len(s.items))
 	set.Fill(items...)
 	to_remove := make([]T, 0)
@@ -72,8 +72,8 @@ func (s Set[T]) Intersection(other Set[T]) Set[T] {
 	return set
 }
 
-func (s Set[T]) Subset(filter func(T) bool) Set[T] {
-	set := NewSet[T]()
+func (s set[T]) Subset(filter func(T) bool) set[T] {
+	set := newSset[T]()
 	items := make([]T, 0, len(s.items))
 	for _, k := range items {
 		if filter(k) {
@@ -84,8 +84,8 @@ func (s Set[T]) Subset(filter func(T) bool) Set[T] {
 	return set
 }
 
-func (s Set[T]) Difference(other Set[T]) Set[T] {
-	set := NewSet[T]()
+func (s set[T]) Difference(other set[T]) set[T] {
+	set := newSset[T]()
 	for item := range s.items {
 		if !other.Contains(item) {
 			set.Add(item)
@@ -94,7 +94,7 @@ func (s Set[T]) Difference(other Set[T]) Set[T] {
 	return set
 }
 
-func (s Set[T]) Reduce(reduce func(T, T) T) T {
+func (s set[T]) Reduce(reduce func(T, T) T) T {
 	var carry T
 
 	for item := range s.items {
@@ -104,7 +104,7 @@ func (s Set[T]) Reduce(reduce func(T, T) T) T {
 	return carry
 }
 
-func (s Set[T]) ToSlice() []T {
+func (s set[T]) ToSlice() []T {
 	items := []T{}
 	for item := range s.items {
 		items = append(items, item)

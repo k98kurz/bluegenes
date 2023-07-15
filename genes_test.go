@@ -325,7 +325,7 @@ func TestGene(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Gene[int].Recombine failed with error: %s", err.Error())
 			}
-			parents := NewSet[string]()
+			parents := newSset[string]()
 			for _, item := range g3.bases {
 				if contains(g1.bases, item) {
 					parents.Add(g1.name)
@@ -379,7 +379,7 @@ func TestGene(t *testing.T) {
 
 	t.Run("MakeGene", func(t *testing.T) {
 		t.Parallel()
-		names := NewSet[string]()
+		names := newSset[string]()
 		sequences := [][]int{}
 
 		for i := 0; i < 10; i++ {
@@ -443,7 +443,7 @@ func TestAllele(t *testing.T) {
 		t.Parallel()
 		a := firstAllele()
 		g, _ := rangeGene(0, 5, "range")
-		expected_names := NewSet[string]()
+		expected_names := newSset[string]()
 
 		for _, g := range a.genes {
 			expected_names.Add(g.name)
@@ -451,7 +451,7 @@ func TestAllele(t *testing.T) {
 		expected_names.Add("range")
 
 		a.Insert(1, g)
-		observed_names := NewSet[string]()
+		observed_names := newSset[string]()
 		for _, g = range a.genes {
 			observed_names.Add(g.name)
 		}
@@ -538,9 +538,9 @@ func TestAllele(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Allele[int].Recombine failed with error: %s", err.Error())
 		}
-		parents := NewSet[string]()
-		dad_bases := NewSet[int]()
-		mom_bases := NewSet[int]()
+		parents := newSset[string]()
+		dad_bases := newSset[int]()
+		mom_bases := newSset[int]()
 		for _, gene := range dad.genes {
 			for _, base := range gene.bases {
 				dad_bases.Add(base)
@@ -572,7 +572,7 @@ func TestAllele(t *testing.T) {
 
 	t.Run("MakeAllele", func(t *testing.T) {
 		t.Parallel()
-		names := NewSet[string]()
+		names := newSset[string]()
 		maps := make(map[string]map[string][]map[string][]int)
 
 		for i := 0; i < 10; i++ {
@@ -651,7 +651,7 @@ func TestChromosome(t *testing.T) {
 		t.Parallel()
 		c := firstChromosome()
 		a, _ := rangeAllele(2, 0, 5, "range")
-		expected_names := NewSet[string]()
+		expected_names := newSset[string]()
 
 		for _, a := range c.alleles {
 			expected_names.Add(a.name)
@@ -659,7 +659,7 @@ func TestChromosome(t *testing.T) {
 		expected_names.Add("range")
 
 		c.Insert(1, a)
-		observed_names := NewSet[string]()
+		observed_names := newSset[string]()
 		for _, a = range c.alleles {
 			observed_names.Add(a.name)
 		}
@@ -741,9 +741,9 @@ func TestChromosome(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Chromosome[int].Recombine failed with error: %s", err.Error())
 		}
-		parents := NewSet[string]()
-		dad_bases := NewSet[int]()
-		mom_bases := NewSet[int]()
+		parents := newSset[string]()
+		dad_bases := newSset[int]()
+		mom_bases := newSset[int]()
 		for _, allele := range dad.alleles {
 			for _, gene := range allele.genes {
 				for _, base := range gene.bases {
@@ -782,7 +782,7 @@ func TestChromosome(t *testing.T) {
 
 	t.Run("MakeChromosome", func(t *testing.T) {
 		t.Parallel()
-		names := NewSet[string]()
+		names := newSset[string]()
 		maps := make(map[string]map[string][]map[string][]map[string][]int)
 
 		for i := 0; i < 10; i++ {
@@ -864,7 +864,7 @@ func TestGenome(t *testing.T) {
 		t.Parallel()
 		g := firstGenome()
 		c, _ := rangeChromosome(1, 2, 0, 5, "range")
-		expected_names := NewSet[string]()
+		expected_names := newSset[string]()
 
 		for _, c := range g.chromosomes {
 			expected_names.Add(c.name)
@@ -872,7 +872,7 @@ func TestGenome(t *testing.T) {
 		expected_names.Add("range")
 
 		g.Insert(1, c)
-		observed_names := NewSet[string]()
+		observed_names := newSset[string]()
 		for _, c = range g.chromosomes {
 			observed_names.Add(c.name)
 		}
@@ -949,9 +949,9 @@ func TestGenome(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Genome[int].Recombine failed with error: %s", err.Error())
 		}
-		parents := NewSet[string]()
-		dad_bases := NewSet[int]()
-		mom_bases := NewSet[int]()
+		parents := newSset[string]()
+		dad_bases := newSset[int]()
+		mom_bases := newSset[int]()
 		for _, chromosome := range dad.chromosomes {
 			for _, allele := range chromosome.alleles {
 				for _, gene := range allele.genes {
@@ -996,7 +996,7 @@ func TestGenome(t *testing.T) {
 
 	t.Run("MakeGenome", func(t *testing.T) {
 		t.Parallel()
-		names := NewSet[string]()
+		names := newSset[string]()
 		maps := make(map[string]map[string][]map[string][]map[string][]map[string][]int)
 
 		for i := 0; i < 10; i++ {

@@ -9,9 +9,9 @@ import (
 func TestSets(t *testing.T) {
 	t.Run("NewLenContainsAddRemove", func(t *testing.T) {
 		t.Parallel()
-		var intSet Set[int]
-		var floatSet Set[float32]
-		var strSet Set[string]
+		var intSet set[int]
+		var floatSet set[float32]
+		var strSet set[string]
 		for i := 1; i < 444; i++ {
 			ints := make([]int, i)
 			floats := make([]float32, i)
@@ -22,9 +22,9 @@ func TestSets(t *testing.T) {
 				strs[k] = fmt.Sprint(k)
 			}
 
-			intSet = NewSet(ints...)
-			floatSet = NewSet(floats...)
-			strSet = NewSet(strs...)
+			intSet = newSset(ints...)
+			floatSet = newSset(floats...)
+			strSet = newSset(strs...)
 
 			if intSet.Len() != i {
 				t.Errorf("Set[int].Len=%v, expected %v", intSet.Len(), i)
@@ -61,9 +61,9 @@ func TestSets(t *testing.T) {
 
 	t.Run("EqualUnionIntersectionSubsetDifference", func(t *testing.T) {
 		t.Parallel()
-		intSet := NewSet(1, 2, 3)
-		copied := NewSet(1, 2, 3)
-		intSet2 := NewSet(1, 4, 5)
+		intSet := newSset(1, 2, 3)
+		copied := newSset(1, 2, 3)
+		intSet2 := newSset(1, 4, 5)
 
 		if !intSet.Equal(copied) {
 			t.Error("Set[int].Equal produced invalid result")
@@ -71,20 +71,20 @@ func TestSets(t *testing.T) {
 			t.Error("Set[int].Equal produced invalid result")
 		}
 
-		expected := NewSet(1, 2, 3, 4, 5)
+		expected := newSset(1, 2, 3, 4, 5)
 		observed := intSet.Union(intSet2)
 		if !expected.Equal(observed) {
 			t.Error("Set[int].Union produced invalid result")
 		}
 
-		expected = NewSet(1)
+		expected = newSset(1)
 		observed = intSet.Intersection(intSet2)
 		if !expected.Equal(observed) {
 			t.Error("Set[int].Union produced invalid result")
 		}
 
-		intSet = NewSet(1, 2, 3, 4, 5, 6, 7, 8)
-		expected = NewSet(2, 4, 6, 8)
+		intSet = newSset(1, 2, 3, 4, 5, 6, 7, 8)
+		expected = newSset(2, 4, 6, 8)
 		observed = intSet.Subset(func(i int) bool {
 			return i%2 == 0
 		})
@@ -92,8 +92,8 @@ func TestSets(t *testing.T) {
 			t.Error("Set[int].Subset produced invalid result")
 		}
 
-		smaller := NewSet(1, 2, 3)
-		expected = NewSet(4, 5, 6, 7, 8)
+		smaller := newSset(1, 2, 3)
+		expected = newSset(4, 5, 6, 7, 8)
 		observed = intSet.Difference(smaller)
 		if !expected.Equal(observed) {
 			t.Error("Set[int].Difference produced invalid result")
@@ -103,7 +103,7 @@ func TestSets(t *testing.T) {
 	t.Run("Reduce", func(t *testing.T) {
 		t.Parallel()
 		for i := 3; i < 1_111; i++ {
-			intSet := NewSet[int]()
+			intSet := newSset[int]()
 			expected := 0
 			for k := 1; k < i; k++ {
 				intSet.Add(k)
@@ -119,7 +119,7 @@ func TestSets(t *testing.T) {
 	t.Run("ToSlice", func(t *testing.T) {
 		t.Parallel()
 		for i := 3; i < 111; i++ {
-			intSet := NewSet[int]()
+			intSet := newSset[int]()
 			expected := []int{}
 			for k := 1; k < i; k++ {
 				expected = append(expected, k)

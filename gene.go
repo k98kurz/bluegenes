@@ -97,7 +97,7 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
 		swaps, _ := max(RandomInt(0, int(max_swaps)), 1)
-		idxSet := NewSet[int]()
+		idxSet := newSset[int]()
 		for i := 0; i < swaps; i++ {
 			idxSet.Add(RandomInt(0, min_size))
 		}
