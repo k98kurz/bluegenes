@@ -421,7 +421,7 @@ func main() {
 		sum += b
 	}
 
-	fmt.Printf("%d generations passed", n_iterations)
+	fmt.Printf("%d generations passed\n", n_iterations)
 	fmt.Printf("the best result had sum=%d compared to target=%d\n", sum, target)
 	fmt.Println(best_fitness.Code.Gene.Val.ToMap())
 }
