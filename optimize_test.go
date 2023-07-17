@@ -49,7 +49,7 @@ func MutateGenome(genome *Genome[int]) {
 	}
 }
 
-func MutateCode(code Code[int]) {
+func MutateCode(code *Code[int]) {
 	if code.Gene.Ok() {
 		MutateGene(code.Gene.Val)
 	}
@@ -130,7 +130,7 @@ func measureCodeFitness(code Code[int]) float64 {
 	return fitness / float64(fitness_count)
 }
 
-func MutateCodeExpensive(code Code[int]) {
+func MutateCodeExpensive(code *Code[int]) {
 	val := 42.0
 	for i := 0; i < 1000; i++ {
 		val /= 6.9
@@ -552,11 +552,11 @@ func TestOptimize(t *testing.T) {
 	t.Run("IterationHook", func(t *testing.T) {
 		type Log struct {
 			count int
-			best  ScoredCode[int]
+			best  *ScoredCode[int]
 		}
 		t.Run("parallel", func(t *testing.T) {
 			logs := []Log{}
-			log_iteration := func(gc int, pop []ScoredCode[int]) {
+			log_iteration := func(gc int, pop []*ScoredCode[int]) {
 				logs = append(logs, Log{count: gc, best: pop[9]})
 			}
 			base_factory := func() int { return RandomInt(-10, 10) }
@@ -607,7 +607,7 @@ func TestOptimize(t *testing.T) {
 		t.Run("sequential", func(t *testing.T) {
 			t.Parallel()
 			logs := []Log{}
-			log_iteration := func(gc int, pop []ScoredCode[int]) {
+			log_iteration := func(gc int, pop []*ScoredCode[int]) {
 				logs = append(logs, Log{count: gc, best: pop[9]})
 			}
 			base_factory := func() int { return RandomInt(-10, 10) }

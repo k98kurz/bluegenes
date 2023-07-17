@@ -15,8 +15,7 @@ type Code[T comparable] struct {
 	Genome     Option[*Genome[T]]
 }
 
-func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T] {
-	child := Code[T]{}
+func (self Code[T]) Recombine(other Code[T], child *Code[T], recombinationOpts RecombineOptions) {
 	if self.Gene.Ok() && other.Gene.Ok() &&
 		(!recombinationOpts.RecombineGenes.Ok() ||
 			recombinationOpts.RecombineGenes.Val) {
@@ -49,7 +48,6 @@ func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions)
 		)
 		child.Genome.IsSet = true
 	}
-	return child
 }
 
 func (self Code[T]) Copy() Code[T] {
@@ -71,7 +69,7 @@ func (self Code[T]) Copy() Code[T] {
 
 type OptimizationParams[T comparable] struct {
 	MeasureFitness       Option[func(Code[T]) float64]
-	Mutate               Option[func(Code[T])]
+	Mutate               Option[func(*Code[T])]
 	InitialPopulation    Option[[]Code[T]]
 	MaxIterations        Option[int]
 	PopulationSize       Option[int]
@@ -79,7 +77,7 @@ type OptimizationParams[T comparable] struct {
 	FitnessTarget        Option[float64]
 	RecombinationOpts    Option[RecombineOptions]
 	ParallelCount        Option[int]
-	IterationHook        Option[func(int, []ScoredCode[T])]
+	IterationHook        Option[func(int, []*ScoredCode[T])]
 }
 
 type BenchmarkResult struct {
@@ -94,7 +92,7 @@ type ScoredCode[T comparable] struct {
 	Score float64
 }
 
-func sortScoredCodes[T comparable](scores []ScoredCode[T]) {
+func sortScoredCodes[T comparable](scores []*ScoredCode[T]) {
 	sort.SliceStable(scores, func(i, j int) bool {
 		return scores[i].Score > scores[j].Score
 	})
@@ -110,7 +108,7 @@ func RandomChoices[T any](items []T, k int) []T {
 	return choices
 }
 
-func weightedParents[T comparable](scores []ScoredCode[T]) []Code[T] {
+func weightedParents[T comparable](scores []*ScoredCode[T]) []Code[T] {
 	parents := []Code[T]{}
 	weight := len(scores)
 	for i, l := 0, len(scores); i < l; i++ {
@@ -132,9 +130,9 @@ func weightedRandomParents[T comparable](parents []Code[T]) (Code[T], Code[T]) {
 	return dad, mom
 }
 
-func Optimize[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T], error) {
+func Optimize[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
-	scores := []ScoredCode[T]{}
+	scores := []*ScoredCode[T]{}
 
 	if !params.InitialPopulation.Ok() {
 		return generation_count, scores, missingParameterError{"params.InitialPopulation"}
@@ -180,16 +178,20 @@ func Optimize[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T],
 	}
 }
 
-func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T], error) {
+func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
-	scores := []ScoredCode[T]{}
+	scores_pool := make(chan *ScoredCode[T], params.PopulationSize.Val+10)
+	for i := len(params.InitialPopulation.Val); i < params.PopulationSize.Val; i++ {
+		scores_pool <- &ScoredCode[T]{}
+	}
+	scores := []*ScoredCode[T]{}
 	var wg sync.WaitGroup
-	work_done := make(chan ScoredCode[T], params.PopulationSize.Val+10)
+	work_done := make(chan *ScoredCode[T], params.PopulationSize.Val+10)
 	done_signal := make(chan bool, params.ParallelCount.Val)
 	measure_fitness := params.MeasureFitness.Val
 	Mutate := params.Mutate.Val
 	for _, code := range params.InitialPopulation.Val {
-		score := ScoredCode[T]{Code: code, Score: measure_fitness(code)}
+		score := &ScoredCode[T]{Code: code, Score: measure_fitness(code)}
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
@@ -197,6 +199,9 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 
 	for generation_count < params.MaxIterations.Val && best_fitness < params.FitnessTarget.Val {
 		generation_count++
+		for _, score := range scores[params.ParentsPerGeneration.Val:] {
+			scores_pool <- score
+		}
 		scores = scores[:params.ParentsPerGeneration.Val]
 		parents := weightedParents(scores)
 		children_to_create := (params.PopulationSize.Val - params.ParentsPerGeneration.Val) / params.ParallelCount.Val
@@ -204,22 +209,22 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 		for i := params.ParallelCount.Val; i > 0; i-- {
 			diff := 0
 			if i == 1 {
-				diff = params.PopulationSize.Val
+				diff = params.PopulationSize.Val - params.ParentsPerGeneration.Val
 				diff -= params.ParallelCount.Val * children_to_create
-				diff -= params.ParentsPerGeneration.Val
 			}
 			wg.Add(1)
-			go func(count int, parents []Code[T], work_done chan<- ScoredCode[T], done_signal chan<- bool) {
+			go func(count int, parents []Code[T], work_done chan<- *ScoredCode[T], done_signal chan<- bool, scores_pool <-chan *ScoredCode[T]) {
 				defer wg.Done()
 				for c := 0; c < count; c++ {
+					child := <-scores_pool
 					mom, dad := weightedRandomParents(parents)
-					child := dad.Recombine(mom, params.RecombinationOpts.Val)
-					Mutate(child)
-					s := measure_fitness(child)
-					work_done <- ScoredCode[T]{Code: child, Score: s}
+					dad.Recombine(mom, &child.Code, params.RecombinationOpts.Val)
+					Mutate(&child.Code)
+					child.Score = measure_fitness(child.Code)
+					work_done <- child
 				}
 				done_signal <- true
-			}(children_to_create+diff, parents, work_done, done_signal)
+			}(children_to_create+diff, parents, work_done, done_signal, scores_pool)
 		}
 
 		wg.Add(1)
@@ -233,6 +238,15 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 				case <-done_signal:
 					finished += 1
 				default:
+				}
+			}
+			finished = 0
+			for finished == 0 {
+				select {
+				case child := <-work_done:
+					scores = append(scores, child)
+				default:
+					finished = 1
 				}
 			}
 		}()
@@ -249,13 +263,19 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []Scor
 	return generation_count, scores, nil
 }
 
-func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T], error) {
+func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
-	scores := []ScoredCode[T]{}
+	scores_pool := make(chan *ScoredCode[T], params.PopulationSize.Val)
+	for i := 0; i < params.PopulationSize.Val; i++ {
+		scores_pool <- &ScoredCode[T]{}
+	}
+	scores := []*ScoredCode[T]{}
 	measure_fitness := params.MeasureFitness.Val
 	Mutate := params.Mutate.Val
 	for _, code := range params.InitialPopulation.Val {
-		score := ScoredCode[T]{Code: code, Score: measure_fitness(code)}
+		score := <-scores_pool
+		score.Code = code
+		score.Score = measure_fitness(code)
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
@@ -263,14 +283,18 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []Sc
 
 	for generation_count < params.MaxIterations.Val && best_fitness < params.FitnessTarget.Val {
 		generation_count++
+		for _, score := range scores[params.ParentsPerGeneration.Val:] {
+			scores_pool <- score
+		}
 		scores = scores[:params.ParentsPerGeneration.Val]
 		parents := weightedParents(scores)
 		for len(scores) < params.PopulationSize.Val {
+			child := <-scores_pool
 			mom, dad := weightedRandomParents(parents)
-			child := dad.Recombine(mom, params.RecombinationOpts.Val)
-			Mutate(child)
-			s := measure_fitness(child)
-			scores = append(scores, ScoredCode[T]{Code: child, Score: s})
+			dad.Recombine(mom, &child.Code, params.RecombinationOpts.Val)
+			Mutate(&child.Code)
+			child.Score = measure_fitness(child.Code)
+			scores = append(scores, child)
 		}
 
 		sortScoredCodes(scores)
@@ -326,7 +350,7 @@ func BenchmarkOptimization[T comparable](params OptimizationParams[T]) Benchmark
 	res := testing.Benchmark(func(b *testing.B) {
 		gm := params.InitialPopulation.Val[0]
 		for i := 0; i < b.N; i++ {
-			params.Mutate.Val(gm)
+			params.Mutate.Val(&gm)
 		}
 	})
 	CostOfMutate := res.T / time.Duration(res.N)
@@ -371,9 +395,9 @@ func BenchmarkOptimization[T comparable](params OptimizationParams[T]) Benchmark
 	CostOfIterationHook := time.Second * 0
 
 	if params.IterationHook.Ok() {
-		scored := []ScoredCode[T]{}
+		scored := []*ScoredCode[T]{}
 		for len(scored) < params.PopulationSize.Val {
-			scored = append(scored, ScoredCode[T]{Code: params.InitialPopulation.Val[0], Score: 0.5})
+			scored = append(scored, &ScoredCode[T]{Code: params.InitialPopulation.Val[0], Score: 0.5})
 		}
 		res := testing.Benchmark(func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
