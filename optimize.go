@@ -17,26 +17,42 @@ type Code[T comparable] struct {
 
 func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T] {
 	child := Code[T]{}
-	if self.Gene.Ok() && other.Gene.Ok() {
-		child.Gene.Val, _ = self.Gene.Val.Recombine(other.Gene.Val, []int{}, recombinationOpts)
+	if self.Gene.Ok() && other.Gene.Ok() &&
+		(!recombinationOpts.RecombineGenes.Ok() ||
+			recombinationOpts.RecombineGenes.Val) {
+		child.Gene.Val, _ = self.Gene.Val.Recombine(
+			other.Gene.Val, []int{}, recombinationOpts,
+		)
 		child.Gene.IsSet = true
 	}
-	if self.Allele.Ok() && other.Allele.Ok() {
-		child.Allele.Val, _ = self.Allele.Val.Recombine(other.Allele.Val, []int{}, recombinationOpts)
+	if self.Allele.Ok() && other.Allele.Ok() &&
+		(!recombinationOpts.RecombineAlleles.Ok() ||
+			recombinationOpts.RecombineAlleles.Val) {
+		child.Allele.Val, _ = self.Allele.Val.Recombine(
+			other.Allele.Val, []int{}, recombinationOpts,
+		)
 		child.Allele.IsSet = true
 	}
-	if self.Chromosome.Ok() && other.Chromosome.Ok() {
-		child.Chromosome.Val, _ = self.Chromosome.Val.Recombine(other.Chromosome.Val, []int{}, recombinationOpts)
+	if self.Chromosome.Ok() && other.Chromosome.Ok() &&
+		(!recombinationOpts.RecombineChromosomes.Ok() ||
+			recombinationOpts.RecombineChromosomes.Val) {
+		child.Chromosome.Val, _ = self.Chromosome.Val.Recombine(
+			other.Chromosome.Val, []int{}, recombinationOpts,
+		)
 		child.Chromosome.IsSet = true
 	}
-	if self.Genome.Ok() && other.Genome.Ok() {
-		child.Genome.Val, _ = self.Genome.Val.Recombine(other.Genome.Val, []int{}, recombinationOpts)
+	if self.Genome.Ok() && other.Genome.Ok() &&
+		(!recombinationOpts.RecombineGenomes.Ok() ||
+			recombinationOpts.RecombineGenomes.Val) {
+		child.Genome.Val, _ = self.Genome.Val.Recombine(
+			other.Genome.Val, []int{}, recombinationOpts,
+		)
 		child.Genome.IsSet = true
 	}
 	return child
 }
 
-func (self Code[T]) copy() Code[T] {
+func (self Code[T]) Copy() Code[T] {
 	gm := Code[T]{}
 	if self.Gene.Ok() {
 		gm.Gene = NewOption(self.Gene.Val.Copy())
@@ -344,7 +360,7 @@ func BenchmarkOptimization[T comparable](params OptimizationParams[T]) Benchmark
 			}(buffered_chan1, buffered_chan2)
 			go func(bc1 chan<- Code[T], bc2 chan<- bool) {
 				defer bg.Done()
-				bc1 <- gm.copy()
+				bc1 <- gm.Copy()
 				bc2 <- true
 			}(buffered_chan1, buffered_chan2)
 			bg.Wait()
