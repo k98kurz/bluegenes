@@ -998,3 +998,46 @@ func TestTuneOptimize(t *testing.T) {
 		})
 	})
 }
+
+func BenchmarkOptimize(b *testing.B) {
+	base_factory := func() int { return RandomInt(-10, 10) }
+	make_opts := MakeOptions[int]{
+		NBases:      NewOption(uint(5)),
+		BaseFactory: NewOption(base_factory),
+	}
+	population := []Code[int]{}
+	for i := 0; i < 100; i++ {
+		gene, err := MakeGene(make_opts)
+		if err != nil {
+			b.Fatal(err)
+		}
+		population = append(population, Code[int]{
+			Gene: NewOption(gene),
+		})
+	}
+	params := OptimizationParams[int]{
+		MeasureFitness:       NewOption(measureCodeFitness),
+		Mutate:               NewOption(MutateCode),
+		InitialPopulation:    NewOption(population),
+		MaxIterations:        NewOption(100),
+		PopulationSize:       NewOption(100),
+		ParentsPerGeneration: NewOption(10),
+	}
+	b.Run("GeneSequential", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("GeneParallel", func(b *testing.B) {
+		params.ParallelCount = NewOption(10)
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
