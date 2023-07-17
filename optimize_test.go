@@ -1002,8 +1002,11 @@ func TestTuneOptimize(t *testing.T) {
 func BenchmarkOptimize(b *testing.B) {
 	base_factory := func() int { return RandomInt(-10, 10) }
 	make_opts := MakeOptions[int]{
-		NBases:      NewOption(uint(5)),
-		BaseFactory: NewOption(base_factory),
+		NBases:       NewOption(uint(5)),
+		NGenes:       NewOption(uint(4)),
+		NAlleles:     NewOption(uint(3)),
+		NChromosomes: NewOption(uint(2)),
+		BaseFactory:  NewOption(base_factory),
 	}
 	population := []Code[int]{}
 	for i := 0; i < 100; i++ {
@@ -1032,6 +1035,114 @@ func BenchmarkOptimize(b *testing.B) {
 		}
 	})
 	b.Run("GeneParallel", func(b *testing.B) {
+		params.ParallelCount = NewOption(10)
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	population = []Code[int]{}
+	for i := 0; i < 100; i++ {
+		allele, err := MakeAllele(make_opts)
+		if err != nil {
+			b.Fatal(err)
+		}
+		population = append(population, Code[int]{
+			Allele: NewOption(allele),
+		})
+	}
+	params = OptimizationParams[int]{
+		MeasureFitness:       NewOption(measureCodeFitness),
+		Mutate:               NewOption(MutateCode),
+		InitialPopulation:    NewOption(population),
+		MaxIterations:        NewOption(100),
+		PopulationSize:       NewOption(100),
+		ParentsPerGeneration: NewOption(10),
+	}
+	b.Run("AlleleSequential", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("AlleleParallel", func(b *testing.B) {
+		params.ParallelCount = NewOption(10)
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	population = []Code[int]{}
+	for i := 0; i < 100; i++ {
+		chromosome, err := MakeChromosome(make_opts)
+		if err != nil {
+			b.Fatal(err)
+		}
+		population = append(population, Code[int]{
+			Chromosome: NewOption(chromosome),
+		})
+	}
+	params = OptimizationParams[int]{
+		MeasureFitness:       NewOption(measureCodeFitness),
+		Mutate:               NewOption(MutateCode),
+		InitialPopulation:    NewOption(population),
+		MaxIterations:        NewOption(100),
+		PopulationSize:       NewOption(100),
+		ParentsPerGeneration: NewOption(10),
+	}
+	b.Run("ChromosomeSequential", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("ChromosomeParallel", func(b *testing.B) {
+		params.ParallelCount = NewOption(10)
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	population = []Code[int]{}
+	for i := 0; i < 100; i++ {
+		genome, err := MakeGenome(make_opts)
+		if err != nil {
+			b.Fatal(err)
+		}
+		population = append(population, Code[int]{
+			Genome: NewOption(genome),
+		})
+	}
+	params = OptimizationParams[int]{
+		MeasureFitness:       NewOption(measureCodeFitness),
+		Mutate:               NewOption(MutateCode),
+		InitialPopulation:    NewOption(population),
+		MaxIterations:        NewOption(100),
+		PopulationSize:       NewOption(100),
+		ParentsPerGeneration: NewOption(10),
+	}
+	b.Run("GenomeSequential", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, _, err := Optimize(params)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("GenomeParallel", func(b *testing.B) {
 		params.ParallelCount = NewOption(10)
 		for i := 0; i < b.N; i++ {
 			_, _, err := Optimize(params)
