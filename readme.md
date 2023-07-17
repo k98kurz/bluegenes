@@ -72,7 +72,7 @@ See the [Usage](#Usage) section below for more details.
 Installation is with `go get`.
 
 ```bash
-go get
+go get github.com/k98kurz/bluegenes@latest
 ```
 
 There are no external dependencies.
@@ -427,7 +427,7 @@ func main() {
 }
 ```
 
-Creating custom fitness functions or artificial life siMulations is left as an
+Creating custom fitness functions or artificial life simulations is left as an
 exercise to the reader.
 
 ## Testing
