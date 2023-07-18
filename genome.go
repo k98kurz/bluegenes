@@ -73,12 +73,12 @@ func (self *Genome[T]) Substitute(index int, chromosome *Chromosome[T]) error {
 	return nil
 }
 
-func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options RecombineOptions) (*Genome[T], error) {
+func (self *Genome[T]) Recombine(other *Genome[T], indices []int,
+	child *Genome[T], options RecombineOptions) error {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	another := &Genome[T]{}
 	min_size, _ := min(len(self.Chromosomes), len(other.Chromosomes))
 	max_size, _ := max(len(self.Chromosomes), len(other.Chromosomes))
 
@@ -94,20 +94,24 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 	}
 	for _, i := range indices {
 		if 0 > i || i >= min_size {
-			return another, indexError{}
+			return indexError{}
 		}
 	}
 
-	Name := self.Name
-	if Name != other.Name {
-		Name_size, err := min(len(Name), len(other.Name))
+	name := self.Name
+	if name != other.Name {
+		name_size, err := min(len(name), len(other.Name))
 		if err != nil {
-			return another, err
+			return err
 		}
-		Name_swap := RandomInt(1, Name_size-1)
-		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
+		name_swap := RandomInt(1, name_size-1)
+		name = self.Name[:name_swap] + other.Name[name_swap:]
 	}
-	another.Name = Name
+	child.Name = name
+
+	for len(child.Chromosomes) < max_size {
+		child.Chromosomes = append(child.Chromosomes, &Chromosome[T]{})
+	}
 
 	chromosomes := make([]*Chromosome[T], max_size)
 	other_chromosomes := make([]*Chromosome[T], max_size)
@@ -131,17 +135,16 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options Recomb
 				!options.MatchChromosomes.Val) ||
 				!options.MatchChromosomes.Ok() ||
 				chromosomes[i].Name == other_chromosomes[i].Name {
-				chromosome, err := chromosomes[i].Recombine(other_chromosomes[i], []int{}, options)
+				err := chromosomes[i].Recombine(other_chromosomes[i], []int{},
+					child.Chromosomes[i], options)
 				if err != nil {
-					return another, err
+					return err
 				}
-				chromosomes[i] = chromosome
 			}
 		}
 	}
 
-	another.Chromosomes = chromosomes
-	return another, nil
+	return nil
 }
 
 func (self *Genome[T]) ToMap() map[string][]map[string][]map[string][]map[string][]T {

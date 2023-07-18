@@ -15,36 +15,49 @@ type Code[T comparable] struct {
 	Genome     Option[*Genome[T]]
 }
 
-func (self Code[T]) Recombine(other Code[T], child *Code[T], recombinationOpts RecombineOptions) {
+func (self Code[T]) Recombine(other Code[T], child *Code[T],
+	recombinationOpts RecombineOptions) {
 	if self.Gene.Ok() && other.Gene.Ok() &&
 		(!recombinationOpts.RecombineGenes.Ok() ||
 			recombinationOpts.RecombineGenes.Val) {
-		child.Gene.Val, _ = self.Gene.Val.Recombine(
-			other.Gene.Val, []int{}, recombinationOpts,
+		if !child.Gene.Ok() {
+			child.Gene = NewOption(&Gene[T]{})
+		}
+		_ = self.Gene.Val.Recombine(
+			other.Gene.Val, []int{}, child.Gene.Val, recombinationOpts,
 		)
 		child.Gene.IsSet = true
 	}
 	if self.Allele.Ok() && other.Allele.Ok() &&
 		(!recombinationOpts.RecombineAlleles.Ok() ||
 			recombinationOpts.RecombineAlleles.Val) {
-		child.Allele.Val, _ = self.Allele.Val.Recombine(
-			other.Allele.Val, []int{}, recombinationOpts,
+		if !child.Allele.Ok() {
+			child.Allele = NewOption(&Allele[T]{})
+		}
+		_ = self.Allele.Val.Recombine(
+			other.Allele.Val, []int{}, child.Allele.Val, recombinationOpts,
 		)
 		child.Allele.IsSet = true
 	}
 	if self.Chromosome.Ok() && other.Chromosome.Ok() &&
 		(!recombinationOpts.RecombineChromosomes.Ok() ||
 			recombinationOpts.RecombineChromosomes.Val) {
-		child.Chromosome.Val, _ = self.Chromosome.Val.Recombine(
-			other.Chromosome.Val, []int{}, recombinationOpts,
+		if !child.Chromosome.Ok() {
+			child.Chromosome = NewOption(&Chromosome[T]{})
+		}
+		_ = self.Chromosome.Val.Recombine(
+			other.Chromosome.Val, []int{}, child.Chromosome.Val, recombinationOpts,
 		)
 		child.Chromosome.IsSet = true
 	}
 	if self.Genome.Ok() && other.Genome.Ok() &&
 		(!recombinationOpts.RecombineGenomes.Ok() ||
 			recombinationOpts.RecombineGenomes.Val) {
-		child.Genome.Val, _ = self.Genome.Val.Recombine(
-			other.Genome.Val, []int{}, recombinationOpts,
+		if !child.Genome.Ok() {
+			child.Genome = NewOption(&Genome[T]{})
+		}
+		_ = self.Genome.Val.Recombine(
+			other.Genome.Val, []int{}, child.Genome.Val, recombinationOpts,
 		)
 		child.Genome.IsSet = true
 	}
@@ -181,7 +194,7 @@ func Optimize[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T]
 func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
 	scores_pool := make(chan *ScoredCode[T], params.PopulationSize.Val+10)
-	for i := len(params.InitialPopulation.Val); i < params.PopulationSize.Val; i++ {
+	for i := 0; i < params.PopulationSize.Val; i++ {
 		scores_pool <- &ScoredCode[T]{}
 	}
 	scores := []*ScoredCode[T]{}
@@ -191,7 +204,9 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*Sco
 	measure_fitness := params.MeasureFitness.Val
 	Mutate := params.Mutate.Val
 	for _, code := range params.InitialPopulation.Val {
-		score := &ScoredCode[T]{Code: code, Score: measure_fitness(code)}
+		score := <-scores_pool
+		score.Code = code
+		score.Score = measure_fitness(code)
 		scores = append(scores, score)
 	}
 	sortScoredCodes(scores)
@@ -204,7 +219,8 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*Sco
 		}
 		scores = scores[:params.ParentsPerGeneration.Val]
 		parents := weightedParents(scores)
-		children_to_create := (params.PopulationSize.Val - params.ParentsPerGeneration.Val) / params.ParallelCount.Val
+		children_to_create := (params.PopulationSize.Val -
+			params.ParentsPerGeneration.Val) / params.ParallelCount.Val
 
 		for i := params.ParallelCount.Val; i > 0; i-- {
 			diff := 0
@@ -263,7 +279,8 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*Sco
 	return generation_count, scores, nil
 }
 
-func optimizeSequentially[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
+func optimizeSequentially[T comparable](params OptimizationParams[T]) (int,
+	[]*ScoredCode[T], error) {
 	generation_count := 0
 	scores_pool := make(chan *ScoredCode[T], params.PopulationSize.Val)
 	for i := 0; i < params.PopulationSize.Val; i++ {

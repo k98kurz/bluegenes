@@ -97,12 +97,12 @@ func (self *Gene[T]) Substitute(index int, base T) error {
 	return nil
 }
 
-func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineOptions) (*Gene[T], error) {
+func (self *Gene[T]) Recombine(other *Gene[T], indices []int, child *Gene[T],
+	options RecombineOptions) error {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	another := &Gene[T]{}
 	min_size, _ := min(len(self.Bases), len(other.Bases))
 	max_size, _ := max(len(self.Bases), len(other.Bases))
 
@@ -118,7 +118,7 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 	}
 	for _, i := range indices {
 		if 0 > i || i >= min_size {
-			return another, indexError{}
+			return indexError{}
 		}
 	}
 
@@ -126,12 +126,12 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 	if Name != other.Name {
 		Name_size, err := min(len(Name), len(other.Name))
 		if err != nil {
-			return another, err
+			return err
 		}
 		Name_swap := RandomInt(1, Name_size-1)
 		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
 	}
-	another.Name = Name
+	child.Name = Name
 
 	bases := make([]T, max_size)
 	copy(bases, self.Bases)
@@ -144,9 +144,9 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineO
 		}
 		swapped = !swapped
 	}
-	another.Bases = bases
+	child.Bases = bases
 
-	return another, nil
+	return nil
 }
 
 func (self *Gene[T]) ToMap() map[string][]T {

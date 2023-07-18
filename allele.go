@@ -73,12 +73,12 @@ func (self *Allele[T]) Substitute(index int, gene *Gene[T]) error {
 	return nil
 }
 
-func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options RecombineOptions) (*Allele[T], error) {
+func (self *Allele[T]) Recombine(other *Allele[T], indices []int,
+	child *Allele[T], options RecombineOptions) error {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	another := &Allele[T]{}
 	min_size, _ := min(len(self.Genes), len(other.Genes))
 	max_size, _ := max(len(self.Genes), len(other.Genes))
 
@@ -94,20 +94,24 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 	}
 	for _, i := range indices {
 		if 0 > i || i >= min_size {
-			return another, indexError{}
+			return indexError{}
 		}
 	}
 
-	Name := self.Name
-	if Name != other.Name {
-		Name_size, err := min(len(Name), len(other.Name))
+	name := self.Name
+	if name != other.Name {
+		name_size, err := min(len(name), len(other.Name))
 		if err != nil {
-			return another, err
+			return err
 		}
-		Name_swap := RandomInt(1, Name_size-1)
-		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
+		name_swap := RandomInt(1, name_size-1)
+		name = self.Name[:name_swap] + other.Name[name_swap:]
 	}
-	another.Name = Name
+	child.Name = name
+
+	for len(child.Genes) < max_size {
+		child.Genes = append(child.Genes, &Gene[T]{})
+	}
 
 	genes := make([]*Gene[T], max_size)
 	other_genes := make([]*Gene[T], max_size)
@@ -131,17 +135,16 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options Recomb
 				!options.MatchGenes.Val) ||
 				!options.MatchGenes.Ok() ||
 				genes[i].Name == other_genes[i].Name {
-				gene, err := genes[i].Recombine(other_genes[i], []int{}, options)
+				err := genes[i].Recombine(other_genes[i], []int{},
+					child.Genes[i], options)
 				if err != nil {
-					return another, err
+					return err
 				}
-				genes[i] = gene
 			}
 		}
 	}
 
-	another.Genes = genes
-	return another, nil
+	return nil
 }
 
 func (self *Allele[T]) ToMap() map[string][]map[string][]T {

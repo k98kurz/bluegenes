@@ -83,7 +83,7 @@ func firstGenome() *Genome[int] {
 	}
 }
 
-func rangeGene(start int, stop int, Name ...string) (*Gene[int], error) {
+func rangeGene(start int, stop int, name ...string) (*Gene[int], error) {
 	g := &Gene[int]{Name: "GnR"}
 	if start >= stop {
 		return g, anError{"start Must be <= stop"}
@@ -91,13 +91,13 @@ func rangeGene(start int, stop int, Name ...string) (*Gene[int], error) {
 	for i := start; i <= stop; i++ {
 		g.Append(i)
 	}
-	if len(Name) > 0 {
-		g.Name = Name[0]
+	if len(name) > 0 {
+		g.Name = name[0]
 	}
 	return g, nil
 }
 
-func rangeAllele(size int, start int, stop int, Name ...string) (*Allele[int], error) {
+func rangeAllele(size int, start int, stop int, name ...string) (*Allele[int], error) {
 	a := &Allele[int]{Name: "AlR"}
 
 	if size <= 0 {
@@ -112,14 +112,15 @@ func rangeAllele(size int, start int, stop int, Name ...string) (*Allele[int], e
 		a.Append(g)
 	}
 
-	if len(Name) > 0 {
-		a.Name = Name[0]
+	if len(name) > 0 {
+		a.Name = name[0]
 	}
 
 	return a, nil
 }
 
-func rangeChromosome(size int, allele_size int, start int, stop int, Name ...string) (*Chromosome[int], error) {
+func rangeChromosome(size int, allele_size int, start int, stop int,
+	name ...string) (*Chromosome[int], error) {
 	c := &Chromosome[int]{Name: "ChR"}
 
 	if size <= 0 {
@@ -138,14 +139,15 @@ func rangeChromosome(size int, allele_size int, start int, stop int, Name ...str
 		c.Append(g)
 	}
 
-	if len(Name) > 0 {
-		c.Name = Name[0]
+	if len(name) > 0 {
+		c.Name = name[0]
 	}
 
 	return c, nil
 }
 
-func rangeGenome(size int, chromosome_size int, allele_size int, start int, stop int, Name ...string) (*Genome[int], error) {
+func rangeGenome(size int, chromosome_size int, allele_size int, start int,
+	stop int, name ...string) (*Genome[int], error) {
 	g := &Genome[int]{Name: "GenomR"}
 
 	if size <= 0 {
@@ -161,15 +163,16 @@ func rangeGenome(size int, chromosome_size int, allele_size int, start int, stop
 	}
 
 	for i := 0; i < size; i++ {
-		c, err := rangeChromosome(chromosome_size, allele_size, start, stop, fmt.Sprintf("AlR%d", i))
+		c, err := rangeChromosome(chromosome_size, allele_size, start, stop,
+			fmt.Sprintf("AlR%d", i))
 		if err != nil {
 			return g, err
 		}
 		g.Append(c)
 	}
 
-	if len(Name) > 0 {
-		g.Name = Name[0]
+	if len(name) > 0 {
+		g.Name = name[0]
 	}
 
 	return g, nil
@@ -321,7 +324,8 @@ func TestGene(t *testing.T) {
 		for i := 0; i < 111; i++ {
 			g1, _ := rangeGene(0, 5, "dad")
 			g2, _ := rangeGene(6, 11, "mom")
-			g3, err := g1.Recombine(g2, []int{}, RecombineOptions{})
+			g3 := &Gene[int]{}
+			err := g1.Recombine(g2, []int{}, g3, RecombineOptions{})
 			if err != nil {
 				t.Fatalf("Gene[int].Recombine failed with error: %s", err.Error())
 			}
@@ -544,7 +548,8 @@ func TestAllele(t *testing.T) {
 		t.Parallel()
 		dad, _ := rangeAllele(3, 0, 5, "dad")
 		mom, _ := rangeAllele(3, 6, 11, "mom")
-		child, err := dad.Recombine(mom, []int{}, RecombineOptions{})
+		child := &Allele[int]{}
+		err := dad.Recombine(mom, []int{}, child, RecombineOptions{})
 		if err != nil {
 			t.Fatalf("Allele[int].Recombine failed with error: %s", err.Error())
 		}
@@ -747,7 +752,8 @@ func TestChromosome(t *testing.T) {
 		t.Parallel()
 		dad, _ := rangeChromosome(2, 3, 0, 5, "dad")
 		mom, _ := rangeChromosome(2, 3, 6, 11, "mom")
-		child, err := dad.Recombine(mom, []int{}, RecombineOptions{})
+		child := &Chromosome[int]{}
+		err := dad.Recombine(mom, []int{}, child, RecombineOptions{})
 		if err != nil {
 			t.Fatalf("Chromosome[int].Recombine failed with error: %s", err.Error())
 		}
@@ -955,7 +961,8 @@ func TestGenome(t *testing.T) {
 		t.Parallel()
 		dad, _ := rangeGenome(2, 2, 3, 0, 5, "dad")
 		mom, _ := rangeGenome(2, 2, 3, 6, 11, "mom")
-		child, err := dad.Recombine(mom, []int{}, RecombineOptions{})
+		child := &Genome[int]{}
+		err := dad.Recombine(mom, []int{}, child, RecombineOptions{})
 		if err != nil {
 			t.Fatalf("Genome[int].Recombine failed with error: %s", err.Error())
 		}
