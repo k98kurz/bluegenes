@@ -4,6 +4,9 @@
 go test -bench=. -run=^# -v
 ```
 
+Some amount of random jitter expected in benchmarks, so they are run multiple
+times to ensure accuracy. Representative samples are logged below.
+
 # master (before experimental optimizations)
 
 - BenchmarkOptimize/GeneSequential
@@ -46,6 +49,8 @@ Average: 45949917.375 ns/op
 - BenchmarkOptimize/GenomeParallel
 - BenchmarkOptimize/GenomeParallel-8                     6         193227775 ns/op
 
+Average: 47108718.25 ns/op
+
 ## part 2
 
 - BenchmarkOptimize/GeneSequential
@@ -66,3 +71,49 @@ Average: 45949917.375 ns/op
 - BenchmarkOptimize/GenomeParallel-8                 26278             43637 ns/op
 
 Average: 26720.5 ns/op
+
+## made MeasureFitness into func(*Code[T]) float64
+
+- BenchmarkOptimize/GeneSequential
+- BenchmarkOptimize/GeneSequential-8                 52788             19049 ns/op
+- BenchmarkOptimize/GeneParallel
+- BenchmarkOptimize/GeneParallel-8                   57282             19306 ns/op
+- BenchmarkOptimize/AlleleSequential
+- BenchmarkOptimize/AlleleSequential-8               59226             19700 ns/op
+- BenchmarkOptimize/AlleleParallel
+- BenchmarkOptimize/AlleleParallel-8                 48254             21410 ns/op
+- BenchmarkOptimize/ChromosomeSequential
+- BenchmarkOptimize/ChromosomeSequential-8           50594             25481 ns/op
+- BenchmarkOptimize/ChromosomeParallel
+- BenchmarkOptimize/ChromosomeParallel-8             42196             26197 ns/op
+- BenchmarkOptimize/GenomeSequential
+- BenchmarkOptimize/GenomeSequential-8               28096             42931 ns/op
+- BenchmarkOptimize/GenomeParallel
+- BenchmarkOptimize/GenomeParallel-8                 25474             42915 ns/op
+
+Average: 27123.625 ns/op
+
+Slightly worse. Undone.
+
+## made Mutate into func(Code[T])
+
+- BenchmarkOptimize/GeneSequential
+- BenchmarkOptimize/GeneSequential-8                 64552             18633 ns/op
+- BenchmarkOptimize/GeneParallel
+- BenchmarkOptimize/GeneParallel-8                   52251             19616 ns/op
+- BenchmarkOptimize/AlleleSequential
+- BenchmarkOptimize/AlleleSequential-8               49417             20947 ns/op
+- BenchmarkOptimize/AlleleParallel
+- BenchmarkOptimize/AlleleParallel-8                 49714             21095 ns/op
+- BenchmarkOptimize/ChromosomeSequential
+- BenchmarkOptimize/ChromosomeSequential-8           49522             24352 ns/op
+- BenchmarkOptimize/ChromosomeParallel
+- BenchmarkOptimize/ChromosomeParallel-8             43490             26826 ns/op
+- BenchmarkOptimize/GenomeSequential
+- BenchmarkOptimize/GenomeSequential-8               26547             43257 ns/op
+- BenchmarkOptimize/GenomeParallel
+- BenchmarkOptimize/GenomeParallel-8                 25240             45040 ns/op
+
+Average: 27470.75 ns/op
+
+Also slightly worse. Undone.

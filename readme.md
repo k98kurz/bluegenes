@@ -365,10 +365,8 @@ func mutateCode(code *bluegenes.Code[int]) {
 			code.Gene.Val.Bases[i] /= bluegenes.RandomInt(1, 3)
 		} else if val <= 0.2 {
 			code.Gene.Val.Bases[i] *= bluegenes.RandomInt(1, 3)
-		} else if val <= 0.6 {
-			code.Gene.Val.Bases[i] += bluegenes.RandomInt(0, 11)
 		} else {
-			code.Gene.Val.Bases[i] -= bluegenes.RandomInt(0, 11)
+			code.Gene.Val.Bases[i] += bluegenes.RandomInt(-11, 11)
 		}
 	}
 }
