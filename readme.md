@@ -353,7 +353,7 @@ func measureFitness(code bluegenes.Code[int]) float64 {
 }
 
 // Mutates a gene at random. Passed as parameter to OptimizeGene.
-func mutateCode(code bluegenes.Code[int]) {
+func mutateCode(code *bluegenes.Code[int]) {
     if !code.Gene.Ok() {
         return
     }
@@ -389,7 +389,7 @@ func main() {
 	}
 
 	// optional: log each iteration
-	log_iteration := func(gc int, pop []bluegenes.ScoredCode[int]) {
+	log_iteration := func(gc int, pop []*bluegenes.ScoredCode[int]) {
 		fmt.Printf("generation %d, best score %f\n", gc, pop[0].Score)
 	}
 
