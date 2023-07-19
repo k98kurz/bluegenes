@@ -193,7 +193,8 @@ func Optimize[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T]
 
 func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
-	scores_pool := make(chan *ScoredCode[T], params.PopulationSize.Val+10)
+	scores_pool_size, _ := max(params.PopulationSize.Val, len(params.InitialPopulation.Val))
+	scores_pool := make(chan *ScoredCode[T], scores_pool_size+10)
 	for i := 0; i < params.PopulationSize.Val; i++ {
 		scores_pool <- &ScoredCode[T]{}
 	}
@@ -282,7 +283,8 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*Sco
 func optimizeSequentially[T comparable](params OptimizationParams[T]) (int,
 	[]*ScoredCode[T], error) {
 	generation_count := 0
-	scores_pool := make(chan *ScoredCode[T], params.PopulationSize.Val)
+	scores_pool_size, _ := max(params.PopulationSize.Val, len(params.InitialPopulation.Val))
+	scores_pool := make(chan *ScoredCode[T], scores_pool_size+10)
 	for i := 0; i < params.PopulationSize.Val; i++ {
 		scores_pool <- &ScoredCode[T]{}
 	}
