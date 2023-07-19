@@ -9,7 +9,7 @@ type Neuron struct {
 	Value              float64
 }
 
-func (n Neuron) Activate(inputs []float64) float64 {
+func (n *Neuron) Activate(inputs []float64) float64 {
 	max_size, _ := max(len(inputs), len(n.Weights))
 	min_size, _ := min(len(inputs), len(n.Weights))
 	vals := make([]float64, max_size)
@@ -35,7 +35,7 @@ type Layer struct {
 	Neurons []Neuron
 }
 
-func (l Layer) FeedForward(inputs []float64) []float64 {
+func (l *Layer) FeedForward(inputs []float64) []float64 {
 	vals := make([]float64, len(l.Neurons))
 	for i, neuron := range l.Neurons {
 		vals[i] = neuron.Activate(inputs)
@@ -61,7 +61,7 @@ type Network struct {
 	Layers []Layer
 }
 
-func (n Network) FeedForward(inputs []float64) []float64 {
+func (n *Network) FeedForward(inputs []float64) []float64 {
 	var vals []float64 = inputs
 	for _, layer := range n.Layers {
 		vals = layer.FeedForward(vals)
