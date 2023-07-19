@@ -600,8 +600,9 @@ func TestOptimize(t *testing.T) {
 
 			first_log_score := logs[0].best.Score
 			final_log_score := logs[len(logs)-1].best.Score
-			if final_log_score <= first_log_score {
-				t.Errorf("Optimize for Gene[int] with IterationHook failed: first score (%f) > final score (%f)", final_log_score, first_log_score)
+			if first_log_score > final_log_score {
+				t.Errorf("Optimize for Gene[int] with IterationHook failed: first score (%f) > final score (%f)",
+					first_log_score, final_log_score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -650,8 +651,9 @@ func TestOptimize(t *testing.T) {
 
 			first_log_score := logs[0].best.Score
 			final_log_score := logs[len(logs)-1].best.Score
-			if final_log_score <= first_log_score {
-				t.Errorf("Optimize for Gene[int] with IterationHook failed: first score (%f) > final score (%f)", final_log_score, first_log_score)
+			if first_log_score > final_log_score {
+				t.Errorf("Optimize for Gene[int] with IterationHook failed: first score (%f) > final score (%f)",
+					first_log_score, final_log_score)
 			}
 		})
 	})
