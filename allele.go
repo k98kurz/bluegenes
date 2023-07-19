@@ -108,8 +108,10 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int,
 		if err != nil {
 			return err
 		}
-		name_swap := RandomInt(1, name_size-1)
-		name = self.Name[:name_swap] + other.Name[name_swap:]
+		if name_size > 2 {
+			name_swap := RandomInt(1, name_size-1)
+			name = self.Name[:name_swap] + other.Name[name_swap:]
+		}
 	}
 	child.Name = name
 

@@ -126,16 +126,18 @@ func (self *Gene[T]) Recombine(other *Gene[T], indices []int, child *Gene[T],
 		}
 	}
 
-	Name := self.Name
-	if Name != other.Name {
-		Name_size, err := min(len(Name), len(other.Name))
+	name := self.Name
+	if name != other.Name {
+		name_size, err := min(len(name), len(other.Name))
 		if err != nil {
 			return err
 		}
-		Name_swap := RandomInt(1, Name_size-1)
-		Name = self.Name[:Name_swap] + other.Name[Name_swap:]
+		if name_size > 2 {
+			name_swap := RandomInt(1, name_size-1)
+			name = self.Name[:name_swap] + other.Name[name_swap:]
+		}
 	}
-	child.Name = Name
+	child.Name = name
 
 	bases := make([]T, max_size)
 	copy(bases, self.Bases)
