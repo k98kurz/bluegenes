@@ -28,7 +28,11 @@ func (self *Chromosome[T]) Insert(index int, allele *Allele[T]) error {
 	if 0 > index || index > len(self.Alleles) {
 		return indexError{}
 	}
-	self.Alleles = append(self.Alleles[:index+1], self.Alleles[index:]...)
+	if len(self.Alleles) == 0 {
+		self.Alleles = append(self.Alleles[:], allele)
+	} else {
+		self.Alleles = append(self.Alleles[:index+1], self.Alleles[index:]...)
+	}
 	self.Alleles[index] = allele
 	return nil
 }

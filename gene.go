@@ -28,7 +28,11 @@ func (self *Gene[T]) Insert(index int, base T) error {
 	if 0 > index || index > len(self.Bases) {
 		return indexError{}
 	}
-	self.Bases = append(self.Bases[:index+1], self.Bases[index:]...)
+	if len(self.Bases) == 0 {
+		self.Bases = append(self.Bases[:], base)
+	} else {
+		self.Bases = append(self.Bases[:index+1], self.Bases[index:]...)
+	}
 	self.Bases[index] = base
 	return nil
 }

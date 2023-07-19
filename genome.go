@@ -28,15 +28,19 @@ func (self *Genome[T]) Insert(index int, chromosome *Chromosome[T]) error {
 	if 0 > index || index > len(self.Chromosomes) {
 		return indexError{}
 	}
-	self.Chromosomes = append(self.Chromosomes[:index+1], self.Chromosomes[index:]...)
+	if len(self.Chromosomes) == 0 {
+		self.Chromosomes = append(self.Chromosomes[:], chromosome)
+	} else {
+		self.Chromosomes = append(self.Chromosomes[:index+1], self.Chromosomes[index:]...)
+	}
 	self.Chromosomes[index] = chromosome
 	return nil
 }
 
-func (self *Genome[T]) Append(allele *Chromosome[T]) error {
+func (self *Genome[T]) Append(chromosome *Chromosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	self.Chromosomes = append(self.Chromosomes[:], allele)
+	self.Chromosomes = append(self.Chromosomes[:], chromosome)
 	return nil
 }
 
