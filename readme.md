@@ -67,6 +67,21 @@ To handle parameters, the following classes and functions are available:
 
 See the [Usage](#Usage) section below for more details.
 
+Additionally, a simple neural network system is included:
+
+- `type Neuron struct` contains `Weights []float64`, `Bias float64`, and
+`ActivationFunction func(float64) float64`
+  - `func (n *Neuron) Activate(inputs []float64) float64`
+  - `func NewNeuron(weights []float64, bias float64, activationFunc ...func(float64) float64) Neuron`
+- `type Layer struct` contains `Neurons []Neuron`
+  - `func (l *Layer) FeedForward(inputs []float64) []float64`
+  - `func NewLayer(weights [][]float64, biases []float64, activationFunc ...func(float64) float64) Layer`
+- `type Network struct` contains `Layers []Layer`
+  - `func (n *Network) FeedForward(inputs []float64) []float64`
+  - `func NewNetwork(weights [][][]float64, biases [][]float64, activationFunc ...func(float64) float64) Network`
+
+The Usage section will be updated when more useful/advanced features are added.
+
 ## Installation
 
 Installation is with `go get`.
