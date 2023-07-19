@@ -47,7 +47,7 @@ func (self *Allele[T]) Append(gene *Gene[T]) error {
 func (self *Allele[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Genes) {
+	if 0 > index || index >= len(self.Genes) {
 		return indexError{}
 	}
 	Gene := self.Genes[index].Copy()

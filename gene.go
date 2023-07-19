@@ -58,7 +58,7 @@ func (self *Gene[T]) InsertSequence(index int, sequence []T) error {
 func (self *Gene[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Bases) {
+	if 0 > index || index >= len(self.Bases) {
 		return indexError{}
 	}
 	Base := self.Bases[index]

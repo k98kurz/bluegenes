@@ -47,7 +47,7 @@ func (self *Genome[T]) Append(chromosome *Chromosome[T]) error {
 func (self *Genome[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Chromosomes) {
+	if 0 > index || index >= len(self.Chromosomes) {
 		return indexError{}
 	}
 	chromosome := self.Chromosomes[index].Copy()
