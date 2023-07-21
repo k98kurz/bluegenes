@@ -10,9 +10,8 @@ type Neuron struct {
 }
 
 func (n *Neuron) Activate(inputs []float64) float64 {
-	max_size, _ := max(len(inputs), len(n.Weights))
 	min_size, _ := min(len(inputs), len(n.Weights))
-	vals := make([]float64, max_size)
+	vals := make([]float64, min_size)
 	for i := 0; i < min_size; i++ {
 		vals[i] = inputs[i] * n.Weights[i]
 	}
