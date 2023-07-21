@@ -836,7 +836,28 @@ func TestChromosome(t *testing.T) {
 		unpacked := ChromosomeFromSequence(sequence, separator)
 
 		if len(unpacked.Alleles) != len(chromosome.Alleles) {
-			t.Errorf("Chromosome[int].Sequence -> ChromosomeFromSequence failed: expected %d Genes, observed %d", len(chromosome.Alleles), len(unpacked.Alleles))
+			t.Errorf(
+				"Chromosome[int].Sequence -> ChromosomeFromSequence failed: expected %d Alleles, observed %d",
+				len(chromosome.Alleles), len(unpacked.Alleles))
+		}
+
+		for i := 0; i < len(unpacked.Alleles); i++ {
+			ua, ca := unpacked.Alleles[i], chromosome.Alleles[i]
+			if len(ua.Genes) != len(ca.Genes) {
+				t.Fatalf(
+					"Chromosome[int].Sequence -> ChromosomeFromSequence failed:"+
+						" expected %d Genes, observed %d", len(ca.Genes),
+					len(ua.Genes))
+			}
+
+			for j := 0; j < len(ua.Genes); j++ {
+				if !equal(ua.Genes[j].Bases, ca.Genes[j].Bases) {
+					t.Fatalf(
+						"Chromosome[int].Sequence -> ChromosomeFromSequence failed:"+
+							" expected %v Bases, observed %v", ca.Genes[j].Bases,
+						ua.Genes[j].Bases)
+				}
+			}
 		}
 
 		repacked := unpacked.Sequence(separator)
