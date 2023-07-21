@@ -2,6 +2,7 @@ package bluegenes
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 )
 
@@ -863,6 +864,50 @@ func TestChromosome(t *testing.T) {
 		repacked := unpacked.Sequence(separator)
 		if !equal(sequence, repacked) {
 			t.Errorf("Chromosome[int].Sequence -> ChromosomeFromSequence -> .Sequence failed: expected %v, observed %v", sequence, repacked)
+		}
+	})
+
+	t.Run("SequenceFloats", func(t *testing.T) {
+		t.Parallel()
+		opts := MakeOptions[float64]{
+			NBases:      NewOption(uint(12)),
+			NGenes:      NewOption(uint(12)),
+			NAlleles:    NewOption(uint(2)),
+			BaseFactory: NewOption(rand.Float64),
+		}
+		chromosome, _ := MakeChromosome[float64](opts)
+		separator := []float64{0.0, 0.0, 0.0, 0.0, 0.0}
+		sequence := chromosome.Sequence(separator)
+		unpacked := ChromosomeFromSequence(sequence, separator)
+
+		if len(unpacked.Alleles) != len(chromosome.Alleles) {
+			t.Errorf(
+				"Chromosome[float64].Sequence -> ChromosomeFromSequence failed: expected %d Alleles, observed %d",
+				len(chromosome.Alleles), len(unpacked.Alleles))
+		}
+
+		for i := 0; i < len(unpacked.Alleles); i++ {
+			ua, ca := unpacked.Alleles[i], chromosome.Alleles[i]
+			if len(ua.Genes) != len(ca.Genes) {
+				t.Fatalf(
+					"Chromosome[float64].Sequence -> ChromosomeFromSequence failed:"+
+						" expected %d Genes, observed %d", len(ca.Genes),
+					len(ua.Genes))
+			}
+
+			for j := 0; j < len(ua.Genes); j++ {
+				if !equal(ua.Genes[j].Bases, ca.Genes[j].Bases) {
+					t.Fatalf(
+						"Chromosome[float64].Sequence -> ChromosomeFromSequence failed:"+
+							" expected %v Bases, observed %v", ca.Genes[j].Bases,
+						ua.Genes[j].Bases)
+				}
+			}
+		}
+
+		repacked := unpacked.Sequence(separator)
+		if !equal(sequence, repacked) {
+			t.Errorf("Chromosome[float64].Sequence -> ChromosomeFromSequence -> .Sequence failed: expected %v, observed %v", sequence, repacked)
 		}
 	})
 }
