@@ -557,7 +557,7 @@ func TestOptimize(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			logs := []Log{}
 			log_iteration := func(gc int, pop []*ScoredCode[int]) {
-				logs = append(logs, Log{count: gc, best: pop[9]})
+				logs = append(logs, Log{count: gc, best: pop[0]})
 			}
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
@@ -609,7 +609,7 @@ func TestOptimize(t *testing.T) {
 			t.Parallel()
 			logs := []Log{}
 			log_iteration := func(gc int, pop []*ScoredCode[int]) {
-				logs = append(logs, Log{count: gc, best: pop[9]})
+				logs = append(logs, Log{count: gc, best: pop[0]})
 			}
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
