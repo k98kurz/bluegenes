@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type Allele[T comparable] struct {
+type Allele[T Ordered] struct {
 	Name  string
 	Genes []*Gene[T]
 	Mu    sync.RWMutex

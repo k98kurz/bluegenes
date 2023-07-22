@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type Genome[T comparable] struct {
+type Genome[T Ordered] struct {
 	Name        string
 	Chromosomes []*Chromosome[T]
 	Mu          sync.RWMutex

@@ -9,20 +9,23 @@ genetic algorithms.
 - [x] Optimization functions + tests
 - [x] Optimization tuner (rough first pass/experimental)
 - [x] Optional optimization hook called per-generation
+- [x] Neural network structs
+- [ ] Neural network training and evolution algorithms
+- [ ] Regression models
 
 ## Overview
 
 The general concept with a genetic algorithm is to evaluate a population for
 fitness (an arbitrary metric) and use fitness, recombination, and Mutation to
 drive evolution toward a more optimal result. In this simple library, the
-genetic material is a sequence of `T comparable`, and it is organized into the
+genetic material is a sequence of `T Ordered`, and it is organized into the
 following hierarchy:
 
-- `type Gene[T comparable] struct` contains bases (`T`)
-- `type Allele[T comparable] struct` contains `Gene[T]`s
-- `type Chromosome[T comparable] struct` contains `Allele[T]`s
-- `type Genome[T comparable] struct` contains `Chromosome[T]`s
-- `type Code[T comparable] struct` is a wrapper that contains an `Option` for each above type
+- `type Gene[T Ordered] struct` contains bases (`T`)
+- `type Allele[T Ordered] struct` contains `Gene[T]`s
+- `type Chromosome[T Ordered] struct` contains `Allele[T]`s
+- `type Genome[T Ordered] struct` contains `Chromosome[T]`s
+- `type Code[T Ordered] struct` is a wrapper that contains an `Option` for each above type
 
 Each of these classes except `Code[T]` has a `Name string` attribute to identify
 the genetic material and a `Mu sync.RWMutex` for safe concurrent operations. The
@@ -31,24 +34,24 @@ relevant instantiation statements.
 
 There are functions for creating randomized instances of each:
 
-- `func MakeGeneMakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error)`
-- `func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error)`
-- `func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error)`
-- `func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error)`
+- `func MakeGeneMakeGene[T Ordered](options MakeOptions[T]) (*Gene[T], error)`
+- `func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error)`
+- `func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error)`
+- `func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error)`
 
 And there is a type that combines a `Code[T]` with a fitness Score `float64`:
 
-- `type ScoredCode[T comparable] struct`
+- `type ScoredCode[T Ordered] struct`
 
 There is one optimization function available currently:
 
-- `func Optimize[T comparable](params OptimizationParams[T]]) (int, []ScoredCode[T], error)`
+- `func Optimize[T Ordered](params OptimizationParams[T]]) (int, []ScoredCode[T], error)`
 
 And there are two functions available for tuning optimizations given an
 `OptimizationParams` instance:
 
-- `func TuneOptimization[T comparable](params OptimizationParams[T, Gene[T]], max_threads ...int) (int, error)`
-- `func BenchmarkOptimization[T comparable](params OptimizationParams[T]) BenchmarkResult`
+- `func TuneOptimization[T Ordered](params OptimizationParams[T, Gene[T]], max_threads ...int) (int, error)`
+- `func BenchmarkOptimization[T Ordered](params OptimizationParams[T]) BenchmarkResult`
 
 The first uses the second to estimate how many goroutines should be used for
 optimization by benchmarking the three types of operations and calculating a
@@ -61,9 +64,9 @@ To handle parameters, the following classes and functions are available:
 
 - `type Option[T any] struct`
 - `func NewOption[T any](val ...T) Option[T]`
-- `type MakeOptions[T comparable] struct`
+- `type MakeOptions[T Ordered] struct`
 - `type RecombineOptions struct`
-- `type OptimizationParams[T comparable] struct`
+- `type OptimizationParams[T Ordered] struct`
 
 See the [Usage](#Usage) section below for more details.
 
@@ -117,7 +120,7 @@ because `IsSet` initializes as `false` and `NewOption(val)` sets it to `true`,
 making it easy to supply required params and omit optional params. For example,
 `MakeOptions[int]{BaseFactory: NewOption(someFunc), NBases: NewOption(10)}.`
 
-- `type MakeOptions[T comparable] struct`
+- `type MakeOptions[T Ordered] struct`
     - `BaseFactory  Option[func() T]`
     - `NBases       Option[uint]`
     - `NGenes       Option[uint]`
@@ -153,7 +156,7 @@ to recombine the underlying subunits of genetic code.
 
 ### Gene
 
-- `type Gene[T comparable] struct`
+- `type Gene[T Ordered] struct`
     - `Name  string`
     - `Bases []T`
     - `Mu    sync.RWMutex`
@@ -167,9 +170,9 @@ to recombine the underlying subunits of genetic code.
     - `func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineOptions) (*Gene[T], error)`
     - `func (self *Gene[T]) ToMap() map[string][]T`
     - `func (self *Gene[T]) Sequence() []T`
-- `func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error)`
-- `func GeneFromMap[T comparable](serialized map[string][]T) *Gene[T]`
-- `func GeneFromSequence[T comparable](sequence []T) *Gene[T]`
+- `func MakeGene[T Ordered](options MakeOptions[T]) (*Gene[T], error)`
+- `func GeneFromMap[T Ordered](serialized map[string][]T) *Gene[T]`
+- `func GeneFromSequence[T Ordered](sequence []T) *Gene[T]`
 
 The `Gene` represents the smallest meaningful unit of genetic code. Because it
 is designed for concurrent operations, it must be allocated on the heap. The
@@ -185,7 +188,7 @@ discarding the `Name` in the process.
 
 ### Allele
 
-- `type Allele[T comparable] struct`
+- `type Allele[T Ordered] struct`
     - `Name  string`
     - `Genes []Gene[T]`
     - `Mu    sync.RWMutex`
@@ -199,9 +202,9 @@ discarding the `Name` in the process.
     - `func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options RecombineOptions) (*Allele[T], error)`
     - `func (self *Allele[T]) ToMap() map[string][]T`
     - `func (self *Allele[T]) Sequence(separator []T) []T`
-- `func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error)`
-- `func AlleleFromMap[T comparable](serialized map[string][]map[string][]T) *Allele[T]`
-- `func AlleleFromSequence[T comparable](sequence []T, separator []T) *Allele[T]`
+- `func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error)`
+- `func AlleleFromMap[T Ordered](serialized map[string][]map[string][]T) *Allele[T]`
+- `func AlleleFromSequence[T Ordered](sequence []T, separator []T) *Allele[T]`
 
 The `Allele` is a collection of related `Gene`s. It has similar features to the
 `Gene`, with the notable difference that `Gene`s will be separated by the
@@ -209,7 +212,7 @@ supplied `separator []T`.
 
 ### Chromosome
 
-- `type Chromosome[T comparable] struct`
+- `type Chromosome[T Ordered] struct`
     - `Name  string`
     - `Alleles []Allele[T]`
     - `Mu    sync.RWMutex`
@@ -223,16 +226,16 @@ supplied `separator []T`.
     - `func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, options RecombineOptions) (*Chromosome[T], error)`
     - `func (self *Chromosome[T]) ToMap() map[string][]T`
     - `func (self *Chromosome[T]) Sequence(separator []T) []T`
-- `func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error)`
-- `func ChromosomeFromMap[T comparable](serialized map[string][]map[string][]map[string][]T) *Chromosome[T]`
-- `func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromosome[T]`
+- `func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error)`
+- `func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]T) *Chromosome[T]`
+- `func ChromosomeFromSequence[T Ordered](sequence []T, separator []T) *Chromosome[T]`
 
 The `Chromosome` is a collection of `Allele`s, which are separated by double
 `separator []T`s when converted to a sequence.
 
 ### Genome
 
-- `type Genome[T comparable] struct`
+- `type Genome[T Ordered] struct`
     - `Name  string`
     - `Chromosomes []Chromosome[T]`
     - `Mu    sync.RWMutex`
@@ -246,17 +249,17 @@ The `Chromosome` is a collection of `Allele`s, which are separated by double
     - `func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options RecombineOptions) (*Genome[T], error)`
     - `func (self *Genome[T]) ToMap() map[string][]T`
     - `func (self *Genome[T]) Sequence(separator []T) []T`
-- `func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error)`
-- `func GenomeFromMap[T comparable](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T]`
-- `func GenomeFromSequence[T comparable](sequence []T, separator []T) *Genome[T]`
+- `func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error)`
+- `func GenomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T]`
+- `func GenomeFromSequence[T Ordered](sequence []T, separator []T) *Genome[T]`
 
 The `Genome` is a collection of `Chromosome`s, which are separated by triple
 `separator []T`s when converted to a sequence.
 
 ### Optimization
 
-- `func Optimize[T comparable](params OptimizationParams[T]) (int, []ScoredCode[T], error)`
-- `type OptimizationParams[T comparable] struct`
+- `func Optimize[T Ordered](params OptimizationParams[T]) (int, []ScoredCode[T], error)`
+- `type OptimizationParams[T Ordered] struct`
     - `MeasureFitness       Option[func(Code[T]) float64]`
     - `Mutate               Option[func(Code[T])]`
     - `InitialPopulation    Option[[]Code[T]]`
@@ -296,10 +299,10 @@ exceeds the population size, the number of threads will be set to half the
 population size (i.e. each goroutine will handle breeding, mutating, and
 evaluating 2 individuals).
 
-- `type ScoredCode[T comparable] struct`
+- `type ScoredCode[T Ordered] struct`
     - `Code  Code[T]`
     - `Score float64`
-- `type Code[T comparable] struct`
+- `type Code[T Ordered] struct`
     - `Gene       Option[*Gene[T]]`
     - `Allele     Option[*Allele[T]]`
     - `Chromosome Option[*Chromosome[T]]`
@@ -311,8 +314,8 @@ These are used in the optimization logic and are exported for experimentation
 with custom optimization loops, e.g. having agents interact in an environment
 for a set amount of time before scoring, culling, breeding, and mutating.
 
-- `func TuneOptimization[T comparable](params OptimizationParams[T], max_threads ...int) (int, error)`
-- `func BenchmarkOptimization[T comparable](params OptimizationParams[T]) BenchmarkResult`
+- `func TuneOptimization[T Ordered](params OptimizationParams[T], max_threads ...int) (int, error)`
+- `func BenchmarkOptimization[T Ordered](params OptimizationParams[T]) BenchmarkResult`
 - `type BenchmarkResult struct`
     - `CostOfCopy           int`
     - `CostOfMutate         int`

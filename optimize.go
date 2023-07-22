@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Code[T comparable] struct {
+type Code[T Ordered] struct {
 	Gene       Option[*Gene[T]]
 	Allele     Option[*Allele[T]]
 	Chromosome Option[*Chromosome[T]]
@@ -80,7 +80,7 @@ func (self Code[T]) Copy() Code[T] {
 	return gm
 }
 
-type OptimizationParams[T comparable] struct {
+type OptimizationParams[T Ordered] struct {
 	MeasureFitness       Option[func(Code[T]) float64]
 	Mutate               Option[func(*Code[T])]
 	InitialPopulation    Option[[]Code[T]]
@@ -100,12 +100,12 @@ type BenchmarkResult struct {
 	CostOfIterationHook  int
 }
 
-type ScoredCode[T comparable] struct {
+type ScoredCode[T Ordered] struct {
 	Code  Code[T]
 	Score float64
 }
 
-func sortScoredCodes[T comparable](scores []*ScoredCode[T]) {
+func sortScoredCodes[T Ordered](scores []*ScoredCode[T]) {
 	sort.SliceStable(scores, func(i, j int) bool {
 		return scores[i].Score > scores[j].Score
 	})
@@ -121,7 +121,7 @@ func RandomChoices[T any](items []T, k int) []T {
 	return choices
 }
 
-func weightedParents[T comparable](scores []*ScoredCode[T]) []Code[T] {
+func weightedParents[T Ordered](scores []*ScoredCode[T]) []Code[T] {
 	parents := []Code[T]{}
 	weight := len(scores)
 	for i, l := 0, len(scores); i < l; i++ {
@@ -133,7 +133,7 @@ func weightedParents[T comparable](scores []*ScoredCode[T]) []Code[T] {
 	return parents
 }
 
-func weightedRandomParents[T comparable](parents []Code[T]) (Code[T], Code[T]) {
+func weightedRandomParents[T Ordered](parents []Code[T]) (Code[T], Code[T]) {
 	dad_and_mom := RandomChoices(parents, 2)
 	dad := dad_and_mom[0]
 	mom := dad_and_mom[1]
@@ -143,7 +143,7 @@ func weightedRandomParents[T comparable](parents []Code[T]) (Code[T], Code[T]) {
 	return dad, mom
 }
 
-func Optimize[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
+func Optimize[T Ordered](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
 	scores := []*ScoredCode[T]{}
 
@@ -191,7 +191,7 @@ func Optimize[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T]
 	}
 }
 
-func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
+func optimizeInParallel[T Ordered](params OptimizationParams[T]) (int, []*ScoredCode[T], error) {
 	generation_count := 0
 	scores_pool_size, _ := max(params.PopulationSize.Val, len(params.InitialPopulation.Val))
 	scores_pool := make(chan *ScoredCode[T], scores_pool_size+10)
@@ -280,7 +280,7 @@ func optimizeInParallel[T comparable](params OptimizationParams[T]) (int, []*Sco
 	return generation_count, scores, nil
 }
 
-func optimizeSequentially[T comparable](params OptimizationParams[T]) (int,
+func optimizeSequentially[T Ordered](params OptimizationParams[T]) (int,
 	[]*ScoredCode[T], error) {
 	generation_count := 0
 	scores_pool_size, _ := max(params.PopulationSize.Val, len(params.InitialPopulation.Val))
@@ -327,7 +327,7 @@ func optimizeSequentially[T comparable](params OptimizationParams[T]) (int,
 	return generation_count, scores, nil
 }
 
-func TuneOptimization[T comparable](params OptimizationParams[T], max_threads ...int) (int, error) {
+func TuneOptimization[T Ordered](params OptimizationParams[T], max_threads ...int) (int, error) {
 	n_goroutines := 1
 	max_goroutines := 4
 	if len(max_threads) > 0 {
@@ -365,7 +365,7 @@ func TuneOptimization[T comparable](params OptimizationParams[T], max_threads ..
 	return n_goroutines, nil
 }
 
-func BenchmarkOptimization[T comparable](params OptimizationParams[T]) BenchmarkResult {
+func BenchmarkOptimization[T Ordered](params OptimizationParams[T]) BenchmarkResult {
 	res := testing.Benchmark(func(b *testing.B) {
 		gm := params.InitialPopulation.Val[0]
 		for i := 0; i < b.N; i++ {

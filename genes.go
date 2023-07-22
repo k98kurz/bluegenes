@@ -30,7 +30,7 @@ func RandomInt(min, max int) int {
 	return min + rand.Intn(max-min)
 }
 
-type MakeOptions[T comparable] struct {
+type MakeOptions[T Ordered] struct {
 	NBases       Option[uint]
 	NGenes       Option[uint]
 	NAlleles     Option[uint]
@@ -49,7 +49,7 @@ type RecombineOptions struct {
 	RecombineGenomes     Option[bool]
 }
 
-func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
+func MakeGene[T Ordered](options MakeOptions[T]) (*Gene[T], error) {
 	g := &Gene[T]{}
 	if !options.NBases.Ok() {
 		return g, missingParameterError{"options.NBases"}
@@ -69,7 +69,7 @@ func MakeGene[T comparable](options MakeOptions[T]) (*Gene[T], error) {
 	return g, nil
 }
 
-func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
+func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error) {
 	a := &Allele[T]{}
 	if !options.NGenes.Ok() {
 		return a, missingParameterError{"options.NGenes"}
@@ -95,7 +95,7 @@ func MakeAllele[T comparable](options MakeOptions[T]) (*Allele[T], error) {
 	return a, nil
 }
 
-func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error) {
+func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error) {
 	c := &Chromosome[T]{}
 	if !options.NAlleles.Ok() {
 		return c, missingParameterError{"options.NAlleles"}
@@ -124,7 +124,7 @@ func MakeChromosome[T comparable](options MakeOptions[T]) (*Chromosome[T], error
 	return c, nil
 }
 
-func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error) {
+func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error) {
 	g := &Genome[T]{}
 	if !options.NChromosomes.Ok() {
 		return g, missingParameterError{"options.NAlleles"}
@@ -156,7 +156,7 @@ func MakeGenome[T comparable](options MakeOptions[T]) (*Genome[T], error) {
 	return g, nil
 }
 
-func breakSequence[T comparable](sequence []T, separator []T) ([]T, []T) {
+func breakSequence[T Ordered](sequence []T, separator []T) ([]T, []T) {
 	var part []T
 	for i, l1, l2 := 0, len(sequence), len(separator); i < l1-l2; i++ {
 		part = sequence[i : i+l2]
@@ -167,7 +167,7 @@ func breakSequence[T comparable](sequence []T, separator []T) ([]T, []T) {
 	return []T{}, sequence
 }
 
-func inverseSequence[T comparable](separator []T) []T {
+func inverseSequence[T Ordered](separator []T) []T {
 	result := []T{}
 	var v interface{}
 	if len(separator) == 0 {
@@ -202,15 +202,13 @@ func inverseSequence[T comparable](separator []T) []T {
 			v = flipFloat64(v.(float64))
 		case string:
 			v = flipString(v.(string))
-		case bool:
-			v = !v.(bool)
 		}
 		result = append(result, v.(T))
 	}
 	return result
 }
 
-func GeneFromMap[T comparable](serialized map[string][]T) *Gene[T] {
+func GeneFromMap[T Ordered](serialized map[string][]T) *Gene[T] {
 	g := Gene[T]{}
 	for k, v := range serialized {
 		g.Name = k
@@ -220,14 +218,14 @@ func GeneFromMap[T comparable](serialized map[string][]T) *Gene[T] {
 	return &g
 }
 
-func GeneFromSequence[T comparable](sequence []T) *Gene[T] {
+func GeneFromSequence[T Ordered](sequence []T) *Gene[T] {
 	g := &Gene[T]{}
 	g.Name, _ = RandomName(4)
 	g.Bases = sequence
 	return g
 }
 
-func AlleleFromMap[T comparable](serialized map[string][]map[string][]T) *Allele[T] {
+func AlleleFromMap[T Ordered](serialized map[string][]map[string][]T) *Allele[T] {
 	a := Allele[T]{}
 
 	for k1, v1 := range serialized {
@@ -240,7 +238,7 @@ func AlleleFromMap[T comparable](serialized map[string][]map[string][]T) *Allele
 	return &a
 }
 
-func AlleleFromSequence[T comparable](sequence []T, separator []T) *Allele[T] {
+func AlleleFromSequence[T Ordered](sequence []T, separator []T) *Allele[T] {
 	var part []T
 	parts := make([][]T, 0)
 
@@ -262,7 +260,7 @@ func AlleleFromSequence[T comparable](sequence []T, separator []T) *Allele[T] {
 	return allele
 }
 
-func ChromosomeFromMap[T comparable](serialized map[string][]map[string][]map[string][]T) *Chromosome[T] {
+func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]T) *Chromosome[T] {
 	c := Chromosome[T]{}
 
 	for k1, v1 := range serialized {
@@ -275,7 +273,7 @@ func ChromosomeFromMap[T comparable](serialized map[string][]map[string][]map[st
 	return &c
 }
 
-func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromosome[T] {
+func ChromosomeFromSequence[T Ordered](sequence []T, separator []T) *Chromosome[T] {
 	var part []T
 	parts := make([][]T, 0)
 	double_sep := append(separator, separator...)
@@ -298,7 +296,7 @@ func ChromosomeFromSequence[T comparable](sequence []T, separator []T) *Chromoso
 	return allele
 }
 
-func GenomeFromMap[T comparable](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T] {
+func GenomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T] {
 	g := Genome[T]{}
 
 	for k1, v1 := range serialized {
@@ -311,7 +309,7 @@ func GenomeFromMap[T comparable](serialized map[string][]map[string][]map[string
 	return &g
 }
 
-func GenomeFromSequence[T comparable](sequence []T, separator []T) *Genome[T] {
+func GenomeFromSequence[T Ordered](sequence []T, separator []T) *Genome[T] {
 	var part []T
 	parts := make([][]T, 0)
 	triple_sep := append(separator, separator...)

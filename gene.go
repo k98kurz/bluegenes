@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type Gene[T comparable] struct {
+type Gene[T Ordered] struct {
 	Name  string
 	Bases []T
 	Mu    sync.RWMutex

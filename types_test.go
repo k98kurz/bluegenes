@@ -361,15 +361,5 @@ func TestHelperFunctions(t *testing.T) {
 					"(%v = %v)\n", sequence, observed)
 			}
 		})
-		t.Run("bool", func(t *testing.T) {
-			t.Parallel()
-			sequence := []bool{true, true, true}
-			expected := []bool{false, false, false}
-			observed := inverseSequence(sequence)
-			if !equal(expected, observed) {
-				t.Errorf("inverseSequence error: expected %v, observed %v\n",
-					expected, observed)
-			}
-		})
 	})
 }
