@@ -1,6 +1,9 @@
 package bluegenes
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type Integer interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64
@@ -125,4 +128,25 @@ func contains[T comparable](list []T, query T) bool {
 		}
 	}
 	return false
+}
+
+func flipFloat32(f float32) float32 {
+	// flip the bits of the float and return the result
+	b := ^math.Float32bits(f)
+	return math.Float32frombits(b)
+}
+
+func flipFloat64(f float64) float64 {
+	// flip the bits of the float and return the result
+	b := ^math.Float64bits(f)
+	return math.Float64frombits(b)
+}
+
+func flipString(s string) string {
+	// flip the bits and return the result
+	result := []byte{}
+	for i := 0; i < len(s); i++ {
+		result = append(result, ^s[i])
+	}
+	return string(result)
 }

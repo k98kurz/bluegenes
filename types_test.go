@@ -146,10 +146,10 @@ func TestHelperFunctions(t *testing.T) {
 
 			observed, err := min(ints...)
 			if err != nil {
-				t.Errorf("min failed with the following error: %v", err.Error())
+				t.Errorf("min failed with the following error: %v\n", err.Error())
 			}
 			if observed != 1 {
-				t.Errorf("min failed; got %d, expected 1", observed)
+				t.Errorf("min failed; got %d, expected 1\n", observed)
 			}
 		}
 	})
@@ -163,10 +163,10 @@ func TestHelperFunctions(t *testing.T) {
 
 			observed, err := max(ints...)
 			if err != nil {
-				t.Errorf("max failed with the following error: %v", err.Error())
+				t.Errorf("max failed with the following error: %v\n", err.Error())
 			}
 			if observed != i {
-				t.Errorf("max failed; got %d, expected %d", observed, i)
+				t.Errorf("max failed; got %d, expected %d\n", observed, i)
 			}
 		}
 	})
@@ -178,7 +178,7 @@ func TestHelperFunctions(t *testing.T) {
 				ints = append(ints, k)
 			}
 			if !contains(ints, i) {
-				t.Error("contains[int] failed to detect item")
+				t.Error("contains[int] failed to detect item\n")
 			}
 		}
 
@@ -194,12 +194,12 @@ func TestHelperFunctions(t *testing.T) {
 			}
 
 			if !equal(first, second) {
-				t.Fatalf("equal failed on [%v], [%v]", first, second)
+				t.Fatalf("equal failed on [%v], [%v]\n", first, second)
 			}
 		}
 	})
 
-	t.Run("Slicecontains", func(t *testing.T) {
+	t.Run("containsSlice", func(t *testing.T) {
 		t.Parallel()
 		slices := make([][]int, 5)
 		for i := 0; i < 5; i++ {
@@ -208,7 +208,168 @@ func TestHelperFunctions(t *testing.T) {
 		}
 
 		if !containsSlice(slices, []int{0, 1, 2}) {
-			t.Fatalf("containsSlice failed to find slice [0 1 2]; slices = %v", slices)
+			t.Fatalf("containsSlice failed to find slice [0 1 2]; slices = %v\n",
+				slices)
 		}
+	})
+
+	t.Run("inverseSequence", func(t *testing.T) {
+		t.Run("int", func(t *testing.T) {
+			t.Parallel()
+			sequence := []int{1, 2, 3}
+			expected := []int{-2, -3, -4}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("int8", func(t *testing.T) {
+			t.Parallel()
+			sequence := []int8{1, 2, 3}
+			expected := []int8{-2, -3, -4}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("int16", func(t *testing.T) {
+			t.Parallel()
+			sequence := []int16{1, 2, 3}
+			expected := []int16{-2, -3, -4}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("int32", func(t *testing.T) {
+			t.Parallel()
+			sequence := []int32{1, 2, 3}
+			expected := []int32{-2, -3, -4}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("int64", func(t *testing.T) {
+			t.Parallel()
+			sequence := []int64{1, 2, 3}
+			expected := []int64{-2, -3, -4}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("uint", func(t *testing.T) {
+			t.Parallel()
+			sequence := []uint{1, 2, 3}
+			max_uint := ^uint(0)
+			expected := []uint{max_uint - 1, max_uint - 2, max_uint - 3}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("uint8", func(t *testing.T) {
+			t.Parallel()
+			sequence := []uint8{1, 2, 3}
+			max_uint := ^uint8(0)
+			expected := []uint8{max_uint - 1, max_uint - 2, max_uint - 3}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("uint16", func(t *testing.T) {
+			t.Parallel()
+			sequence := []uint16{1, 2, 3}
+			max_uint := ^uint16(0)
+			expected := []uint16{max_uint - 1, max_uint - 2, max_uint - 3}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("uint32", func(t *testing.T) {
+			t.Parallel()
+			sequence := []uint32{1, 2, 3}
+			max_uint := ^uint32(0)
+			expected := []uint32{max_uint - 1, max_uint - 2, max_uint - 3}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("uint64", func(t *testing.T) {
+			t.Parallel()
+			sequence := []uint64{1, 2, 3}
+			max_uint := ^uint64(0)
+			expected := []uint64{max_uint - 1, max_uint - 2, max_uint - 3}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
+		t.Run("float32", func(t *testing.T) {
+			t.Parallel()
+			sequence := []float32{1, 2, 3}
+			expected := inverseSequence(sequence)
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+			if equal(sequence, observed) {
+				t.Errorf("inverseSequence error: sequence and inverse are equal"+
+					"(%v = %v)\n", sequence, observed)
+			}
+		})
+		t.Run("float64", func(t *testing.T) {
+			t.Parallel()
+			sequence := []float64{1, 2, 3}
+			expected := inverseSequence(sequence)
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+			if equal(sequence, observed) {
+				t.Errorf("inverseSequence error: sequence and inverse are equal"+
+					"(%v = %v)\n", sequence, observed)
+			}
+		})
+		t.Run("string", func(t *testing.T) {
+			t.Parallel()
+			sequence := []string{"1", "2", "3"}
+			expected := inverseSequence(sequence)
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+			if equal(sequence, observed) {
+				t.Errorf("inverseSequence error: sequence and inverse are equal"+
+					"(%v = %v)\n", sequence, observed)
+			}
+		})
+		t.Run("bool", func(t *testing.T) {
+			t.Parallel()
+			sequence := []bool{true, true, true}
+			expected := []bool{false, false, false}
+			observed := inverseSequence(sequence)
+			if !equal(expected, observed) {
+				t.Errorf("inverseSequence error: expected %v, observed %v\n",
+					expected, observed)
+			}
+		})
 	})
 }

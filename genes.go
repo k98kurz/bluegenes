@@ -167,6 +167,49 @@ func breakSequence[T comparable](sequence []T, separator []T) ([]T, []T) {
 	return []T{}, sequence
 }
 
+func inverseSequence[T comparable](separator []T) []T {
+	result := []T{}
+	var v interface{}
+	if len(separator) == 0 {
+		return result
+	}
+	for i := 0; i < len(separator); i++ {
+		v = separator[i]
+		switch any(v).(type) {
+		case int:
+			v = ^v.(int)
+		case int8:
+			v = ^v.(int8)
+		case int16:
+			v = ^v.(int16)
+		case int32:
+			v = ^v.(int32)
+		case int64:
+			v = ^v.(int64)
+		case uint:
+			v = ^v.(uint)
+		case uint8:
+			v = ^v.(uint8)
+		case uint16:
+			v = ^v.(uint16)
+		case uint32:
+			v = ^v.(uint32)
+		case uint64:
+			v = ^v.(uint64)
+		case float32:
+			v = flipFloat32(v.(float32))
+		case float64:
+			v = flipFloat64(v.(float64))
+		case string:
+			v = flipString(v.(string))
+		case bool:
+			v = !v.(bool)
+		}
+		result = append(result, v.(T))
+	}
+	return result
+}
+
 func GeneFromMap[T comparable](serialized map[string][]T) *Gene[T] {
 	g := Gene[T]{}
 	for k, v := range serialized {
