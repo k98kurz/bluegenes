@@ -119,7 +119,7 @@ func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error) {
 	if options.Name.Ok() {
 		c.Name = options.Name.Val
 	} else {
-		c.Name, _ = RandomName(3)
+		c.Name, _ = RandomName(2)
 	}
 	return c, nil
 }
@@ -238,9 +238,15 @@ func AlleleFromMap[T Ordered](serialized map[string][]map[string][]T) *Allele[T]
 	return &a
 }
 
-func AlleleFromSequence[T Ordered](sequence []T, separator []T) *Allele[T] {
+func AlleleFromSequence[T Ordered](sequence []T, separator []T, placeholder ...[]T) *Allele[T] {
 	var part []T
 	parts := make([][]T, 0)
+	var realPlaceholder []T
+	if len(placeholder) > 0 {
+		realPlaceholder = placeholder[0]
+	} else {
+		realPlaceholder = inverseSequence(separator)
+	}
 
 	part, sequence = breakSequence(sequence, separator)
 	for len(part) > 0 {
@@ -250,8 +256,14 @@ func AlleleFromSequence[T Ordered](sequence []T, separator []T) *Allele[T] {
 	parts = append(parts, sequence)
 
 	genes := make([]*Gene[T], 0)
+	var gene *Gene[T]
 	for _, seq := range parts {
-		gene := GeneFromSequence(seq)
+		if equal(seq, realPlaceholder) {
+			name, _ := RandomName(4)
+			gene = &Gene[T]{Name: name}
+		} else {
+			gene = GeneFromSequence(seq)
+		}
 		genes = append(genes, gene)
 	}
 
@@ -273,10 +285,17 @@ func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[strin
 	return &c
 }
 
-func ChromosomeFromSequence[T Ordered](sequence []T, separator []T) *Chromosome[T] {
+func ChromosomeFromSequence[T Ordered](sequence []T, separator []T, placeholder ...[]T) *Chromosome[T] {
 	var part []T
 	parts := make([][]T, 0)
 	double_sep := append(separator, separator...)
+	var realPlaceholder []T
+	if len(placeholder) > 0 {
+		realPlaceholder = placeholder[0]
+	} else {
+		realPlaceholder = inverseSequence(separator)
+	}
+	realPlaceholder = append(realPlaceholder, realPlaceholder...)
 
 	part, sequence = breakSequence(sequence, double_sep)
 	for len(part) > 0 {
@@ -286,14 +305,20 @@ func ChromosomeFromSequence[T Ordered](sequence []T, separator []T) *Chromosome[
 	parts = append(parts, sequence)
 
 	alleles := make([]*Allele[T], 0)
+	var allele *Allele[T]
 	for _, seq := range parts {
-		allele := AlleleFromSequence(seq, separator)
+		if equal(seq, realPlaceholder) {
+			name, _ := RandomName(3)
+			allele = &Allele[T]{Name: name}
+		} else {
+			allele = AlleleFromSequence(seq, separator, placeholder...)
+		}
 		alleles = append(alleles, allele)
 	}
 
-	allele := &Chromosome[T]{Alleles: alleles}
-	allele.Name, _ = RandomName(3)
-	return allele
+	chromosome := &Chromosome[T]{Alleles: alleles}
+	chromosome.Name, _ = RandomName(2)
+	return chromosome
 }
 
 func GenomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T] {
@@ -309,11 +334,19 @@ func GenomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]
 	return &g
 }
 
-func GenomeFromSequence[T Ordered](sequence []T, separator []T) *Genome[T] {
+func GenomeFromSequence[T Ordered](sequence []T, separator []T, placeholder ...[]T) *Genome[T] {
 	var part []T
 	parts := make([][]T, 0)
 	triple_sep := append(separator, separator...)
 	triple_sep = append(triple_sep, separator...)
+	var realPlaceholder []T
+	if len(placeholder) > 0 {
+		realPlaceholder = placeholder[0]
+	} else {
+		realPlaceholder = inverseSequence(separator)
+	}
+	realPlaceholder = append(realPlaceholder, realPlaceholder...)
+	realPlaceholder = append(realPlaceholder, realPlaceholder...)
 
 	part, sequence = breakSequence(sequence, triple_sep)
 	for len(part) > 0 {
@@ -323,12 +356,18 @@ func GenomeFromSequence[T Ordered](sequence []T, separator []T) *Genome[T] {
 	parts = append(parts, sequence)
 
 	chromosomes := make([]*Chromosome[T], 0)
+	var chromosome *Chromosome[T]
 	for _, seq := range parts {
-		chromosome := ChromosomeFromSequence(seq, separator)
+		if equal(seq, realPlaceholder) {
+			name, _ := RandomName(2)
+			chromosome = &Chromosome[T]{Name: name}
+		} else {
+			chromosome = ChromosomeFromSequence(seq, separator, placeholder...)
+		}
 		chromosomes = append(chromosomes, chromosome)
 	}
 
 	genome := &Genome[T]{Chromosomes: chromosomes}
-	genome.Name, _ = RandomName(3)
+	genome.Name, _ = RandomName(6)
 	return genome
 }

@@ -164,17 +164,27 @@ func (self *Chromosome[T]) ToMap() map[string][]map[string][]map[string][]T {
 	return serialized
 }
 
-func (self *Chromosome[T]) Sequence(separator []T) []T {
+func (self *Chromosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
+	var realPlaceholder []T
+	if len(placeholder) > 0 {
+		realPlaceholder = placeholder[0]
+	} else {
+		realPlaceholder = inverseSequence(separator)
+	}
+	realPlaceholder = append(realPlaceholder, realPlaceholder...)
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
 	for _, allele := range self.Alleles {
-		parts = append(parts, allele.Sequence(separator))
+		parts = append(parts, allele.Sequence(separator, placeholder...))
 	}
 
 	for i, part := range parts {
+		if len(part) == 0 {
+			part = realPlaceholder
+		}
 		if i == 0 {
 			sequence = append(sequence, part...)
 		} else {

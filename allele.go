@@ -164,17 +164,26 @@ func (self *Allele[T]) ToMap() map[string][]map[string][]T {
 	return serialized
 }
 
-func (self *Allele[T]) Sequence(separator []T) []T {
+func (self *Allele[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
+	var realPlaceholder []T
+	if len(placeholder) > 0 {
+		realPlaceholder = placeholder[0]
+	} else {
+		realPlaceholder = inverseSequence(separator)
+	}
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
 	for _, gene := range self.Genes {
-		parts = append(parts, gene.Sequence())
+		parts = append(parts, gene.Sequence(placeholder...))
 	}
 
 	for i, part := range parts {
+		if len(part) == 0 {
+			part = realPlaceholder
+		}
 		if i == 0 {
 			sequence = append(sequence, part...)
 		} else {

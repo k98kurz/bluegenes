@@ -163,17 +163,28 @@ func (self *Genome[T]) ToMap() map[string][]map[string][]map[string][]map[string
 	return serialized
 }
 
-func (self *Genome[T]) Sequence(separator []T) []T {
+func (self *Genome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
+	var realPlaceholder []T
+	if len(placeholder) > 0 {
+		realPlaceholder = placeholder[0]
+	} else {
+		realPlaceholder = inverseSequence(separator)
+	}
+	realPlaceholder = append(realPlaceholder, realPlaceholder...)
+	realPlaceholder = append(realPlaceholder, realPlaceholder...)
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
 	for _, chromosome := range self.Chromosomes {
-		parts = append(parts, chromosome.Sequence(separator))
+		parts = append(parts, chromosome.Sequence(separator, placeholder...))
 	}
 
 	for i, part := range parts {
+		if len(part) == 0 {
+			part = realPlaceholder
+		}
 		if i == 0 {
 			sequence = append(sequence, part...)
 		} else {

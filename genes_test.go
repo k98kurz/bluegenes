@@ -633,6 +633,32 @@ func TestAllele(t *testing.T) {
 			t.Errorf("Allele[int].Sequence -> AlleleFromSequence -> .Sequence failed: expected %v, observed %v", sequence, repacked)
 		}
 	})
+
+	t.Run("SequenceEmptyGene", func(t *testing.T) {
+		t.Parallel()
+		allele := firstAllele()
+		allele.Insert(1, &Gene[int]{Name: "empty", Bases: []int{}})
+		separator := []int{0, 0, 0, 0, 0}
+		sequence := allele.Sequence(separator)
+		unpacked := AlleleFromSequence(sequence, separator)
+
+		if len(unpacked.Genes) != len(allele.Genes) {
+			t.Errorf("Allele[int].Sequence -> AlleleFromSequence failed: expected %d Genes, observed %d", len(allele.Genes), len(unpacked.Genes))
+		}
+
+		repacked := unpacked.Sequence(separator)
+		if !equal(sequence, repacked) {
+			t.Errorf("Allele[int].Sequence -> AlleleFromSequence -> .Sequence failed: expected %v, observed %v", sequence, repacked)
+		}
+
+		for i, gene := range unpacked.Genes {
+			if !equal(gene.Bases, allele.Genes[i].Bases) {
+				t.Errorf("Allele[int].Sequence with empty gene -> "+
+					"AlleleFromSequence failed for Gene[%d]: expected %v, observed %v",
+					i, allele.Genes[i].Bases, gene.Bases)
+			}
+		}
+	})
 }
 
 func TestChromosome(t *testing.T) {
@@ -832,6 +858,45 @@ func TestChromosome(t *testing.T) {
 	t.Run("Sequence", func(t *testing.T) {
 		t.Parallel()
 		chromosome := firstChromosome()
+		separator := []int{0, 0, 0, 0, 0}
+		sequence := chromosome.Sequence(separator)
+		unpacked := ChromosomeFromSequence(sequence, separator)
+
+		if len(unpacked.Alleles) != len(chromosome.Alleles) {
+			t.Errorf(
+				"Chromosome[int].Sequence -> ChromosomeFromSequence failed: expected %d Alleles, observed %d",
+				len(chromosome.Alleles), len(unpacked.Alleles))
+		}
+
+		for i := 0; i < len(unpacked.Alleles); i++ {
+			ua, ca := unpacked.Alleles[i], chromosome.Alleles[i]
+			if len(ua.Genes) != len(ca.Genes) {
+				t.Fatalf(
+					"Chromosome[int].Sequence -> ChromosomeFromSequence failed:"+
+						" expected %d Genes, observed %d", len(ca.Genes),
+					len(ua.Genes))
+			}
+
+			for j := 0; j < len(ua.Genes); j++ {
+				if !equal(ua.Genes[j].Bases, ca.Genes[j].Bases) {
+					t.Fatalf(
+						"Chromosome[int].Sequence -> ChromosomeFromSequence failed:"+
+							" expected %v Bases, observed %v", ca.Genes[j].Bases,
+						ua.Genes[j].Bases)
+				}
+			}
+		}
+
+		repacked := unpacked.Sequence(separator)
+		if !equal(sequence, repacked) {
+			t.Errorf("Chromosome[int].Sequence -> ChromosomeFromSequence -> .Sequence failed: expected %v, observed %v", sequence, repacked)
+		}
+	})
+
+	t.Run("SequenceEmptyAllele", func(t *testing.T) {
+		t.Parallel()
+		chromosome := firstChromosome()
+		chromosome.Insert(1, &Allele[int]{Name: "empty", Genes: []*Gene[int]{}})
 		separator := []int{0, 0, 0, 0, 0}
 		sequence := chromosome.Sequence(separator)
 		unpacked := ChromosomeFromSequence(sequence, separator)
@@ -1170,6 +1235,43 @@ func TestGenome(t *testing.T) {
 		repacked := unpacked.Sequence(separator)
 		if !equal(sequence, repacked) {
 			t.Errorf("Genome[int].Sequence -> GenomeFromSequence -> .Sequence failed: expected %v, observed %v", sequence, repacked)
+		}
+	})
+
+	t.Run("SequenceEmptyChromosome", func(t *testing.T) {
+		t.Parallel()
+		genome := firstGenome()
+		genome.Insert(1, &Chromosome[int]{Name: "empty"})
+		separator := []int{0, 0, 0, 0, 0}
+		sequence := genome.Sequence(separator)
+		unpacked := GenomeFromSequence(sequence, separator)
+
+		if len(unpacked.Chromosomes) != len(genome.Chromosomes) {
+			t.Errorf("Genome[int].Sequence -> GenomeFromSequence failed: "+
+				"expected %d genes, observed %d\n", len(genome.Chromosomes), len(unpacked.Chromosomes))
+		}
+
+		repacked := unpacked.Sequence(separator)
+		if !equal(sequence, repacked) {
+			t.Errorf("Genome[int].Sequence -> GenomeFromSequence -> .Sequence"+
+				" failed: expected %v, observed %v\n", sequence, repacked)
+		}
+
+		for i, chromosome := range genome.Chromosomes {
+			otherChromosome := unpacked.Chromosomes[i]
+			if len(chromosome.Alleles) != len(otherChromosome.Alleles) {
+				t.Fatalf("Genome[int].Sequence -> GenomeFromSequence empty Allele"+
+					"failed: different number of Alleles: expected %d, observed %d\n",
+					len(chromosome.Alleles), len(otherChromosome.Alleles))
+			}
+			for j, allele := range chromosome.Alleles {
+				otherAllele := otherChromosome.Alleles[j]
+				if len(allele.Genes) != len(otherAllele.Genes) {
+					t.Fatalf("Genome[int].Sequence -> GenomeFromSequence empty"+
+						" Allele failed: different number of Genes: expected "+
+						"%d, observed %d\n", len(allele.Genes), len(otherAllele.Genes))
+				}
+			}
 		}
 	})
 }

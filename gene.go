@@ -163,8 +163,11 @@ func (self *Gene[T]) ToMap() map[string][]T {
 	return serialized
 }
 
-func (self *Gene[T]) Sequence() []T {
+func (self *Gene[T]) Sequence(placeholder ...[]T) []T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
+	if len(placeholder) > 0 && len(self.Bases) == 0 {
+		return placeholder[0]
+	}
 	return self.Bases
 }
