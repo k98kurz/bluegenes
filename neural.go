@@ -300,6 +300,13 @@ func ExpressGeneAsNeuron(gene *Gene[float64],
 		Weights: gene.Bases[1:]}
 }
 
+// Encodes a Neuron as a Gene.
+func EncodeNeuronAsGene(neuron Neuron) *Gene[float64] {
+	gene := Gene[float64]{Bases: []float64{neuron.Bias}}
+	gene.Bases = append(gene.Bases, neuron.Weights...)
+	return &gene
+}
+
 // Expresses an Allele as a neural Layer. Allele.Genes encode Neurons.
 func ExpressAlleleAsLayer(allele *Allele[float64],
 	activationFunc ...func(float64) float64) Layer {
@@ -316,6 +323,16 @@ func ExpressAlleleAsLayer(allele *Allele[float64],
 	return Layer{Neurons: neurons}
 }
 
+func EncodeLayerAsAllele(layer Layer) *Allele[float64] {
+	var genes []*Gene[float64]
+	for _, neuron := range layer.Neurons {
+		genes = append(genes, EncodeNeuronAsGene(neuron))
+	}
+	return &Allele[float64]{
+		Genes: genes,
+	}
+}
+
 // Expresses a Chromosome as a neural Network. Chromosome.Alleles encode Layers.
 func ExpressChromosomeAsNetwork(chromosome *Chromosome[float64],
 	activationFunc ...func(float64) float64) Network {
@@ -330,4 +347,14 @@ func ExpressChromosomeAsNetwork(chromosome *Chromosome[float64],
 		layers = append(layers, ExpressAlleleAsLayer(allele, actFunc))
 	}
 	return Network{Layers: layers}
+}
+
+func EncodeNetworkAsChromosome(network Network) *Chromosome[float64] {
+	var alleles []*Allele[float64]
+	for _, layer := range network.Layers {
+		alleles = append(alleles, EncodeLayerAsAllele(layer))
+	}
+	return &Chromosome[float64]{
+		Alleles: alleles,
+	}
 }
