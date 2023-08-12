@@ -10,7 +10,7 @@ import (
 
 type Code[T Ordered] struct {
 	Gene       Option[*Gene[T]]
-	Allele     Option[*Allele[T]]
+	Nucleosome Option[*Nucleosome[T]]
 	Chromosome Option[*Chromosome[T]]
 	Genome     Option[*Genome[T]]
 }
@@ -28,16 +28,16 @@ func (self Code[T]) Recombine(other Code[T], child *Code[T],
 		)
 		child.Gene.IsSet = true
 	}
-	if self.Allele.Ok() && other.Allele.Ok() &&
-		(!recombinationOpts.RecombineAlleles.Ok() ||
-			recombinationOpts.RecombineAlleles.Val) {
-		if !child.Allele.Ok() {
-			child.Allele = NewOption(&Allele[T]{})
+	if self.Nucleosome.Ok() && other.Nucleosome.Ok() &&
+		(!recombinationOpts.RecombineNucleosomes.Ok() ||
+			recombinationOpts.RecombineNucleosomes.Val) {
+		if !child.Nucleosome.Ok() {
+			child.Nucleosome = NewOption(&Nucleosome[T]{})
 		}
-		_ = self.Allele.Val.Recombine(
-			other.Allele.Val, []int{}, child.Allele.Val, recombinationOpts,
+		_ = self.Nucleosome.Val.Recombine(
+			other.Nucleosome.Val, []int{}, child.Nucleosome.Val, recombinationOpts,
 		)
-		child.Allele.IsSet = true
+		child.Nucleosome.IsSet = true
 	}
 	if self.Chromosome.Ok() && other.Chromosome.Ok() &&
 		(!recombinationOpts.RecombineChromosomes.Ok() ||
@@ -68,8 +68,8 @@ func (self Code[T]) Copy() Code[T] {
 	if self.Gene.Ok() {
 		gm.Gene = NewOption(self.Gene.Val.Copy())
 	}
-	if self.Allele.Ok() {
-		gm.Allele = NewOption(self.Allele.Val.Copy())
+	if self.Nucleosome.Ok() {
+		gm.Nucleosome = NewOption(self.Nucleosome.Val.Copy())
 	}
 	if self.Chromosome.Ok() {
 		gm.Chromosome = NewOption(self.Chromosome.Val.Copy())

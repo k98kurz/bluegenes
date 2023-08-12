@@ -6,23 +6,23 @@ import (
 	"sync"
 )
 
-type Allele[T Ordered] struct {
+type Nucleosome[T Ordered] struct {
 	Name  string
 	Genes []*Gene[T]
 	Mu    sync.RWMutex
 }
 
-func (a *Allele[T]) Copy() *Allele[T] {
+func (a *Nucleosome[T]) Copy() *Nucleosome[T] {
 	a.Mu.RLock()
 	defer a.Mu.RUnlock()
-	var another Allele[T]
+	var another Nucleosome[T]
 	another.Name = a.Name
 	another.Genes = make([]*Gene[T], len(a.Genes))
 	copy(another.Genes, a.Genes)
 	return &another
 }
 
-func (self *Allele[T]) Insert(index int, gene *Gene[T]) error {
+func (self *Nucleosome[T]) Insert(index int, gene *Gene[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
 	if 0 > index || index > len(self.Genes) {
@@ -37,14 +37,14 @@ func (self *Allele[T]) Insert(index int, gene *Gene[T]) error {
 	return nil
 }
 
-func (self *Allele[T]) Append(gene *Gene[T]) error {
+func (self *Nucleosome[T]) Append(gene *Gene[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
 	self.Genes = append(self.Genes[:], gene)
 	return nil
 }
 
-func (self *Allele[T]) Duplicate(index int) error {
+func (self *Nucleosome[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.Genes) {
@@ -56,7 +56,7 @@ func (self *Allele[T]) Duplicate(index int) error {
 	return nil
 }
 
-func (self *Allele[T]) Delete(index int) error {
+func (self *Nucleosome[T]) Delete(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.Genes) {
@@ -66,7 +66,7 @@ func (self *Allele[T]) Delete(index int) error {
 	return nil
 }
 
-func (self *Allele[T]) Substitute(index int, gene *Gene[T]) error {
+func (self *Nucleosome[T]) Substitute(index int, gene *Gene[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
 	if 0 > index || index >= len(self.Genes) {
@@ -77,8 +77,8 @@ func (self *Allele[T]) Substitute(index int, gene *Gene[T]) error {
 	return nil
 }
 
-func (self *Allele[T]) Recombine(other *Allele[T], indices []int,
-	child *Allele[T], options RecombineOptions) error {
+func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
+	child *Nucleosome[T], options RecombineOptions) error {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	other.Mu.RLock()
@@ -153,7 +153,7 @@ func (self *Allele[T]) Recombine(other *Allele[T], indices []int,
 	return nil
 }
 
-func (self *Allele[T]) ToMap() map[string][]map[string][]T {
+func (self *Nucleosome[T]) ToMap() map[string][]map[string][]T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]T)
@@ -164,7 +164,7 @@ func (self *Allele[T]) ToMap() map[string][]map[string][]T {
 	return serialized
 }
 
-func (self *Allele[T]) Sequence(separator []T, placeholder ...[]T) []T {
+func (self *Nucleosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	self.Mu.RLock()
 	defer self.Mu.RUnlock()
 	var realPlaceholder []T

@@ -25,10 +25,10 @@ func MutateGene(gene *Gene[int]) {
 	}
 }
 
-func MutateAllele(allele *Allele[int]) {
-	allele.Mu.Lock()
-	defer allele.Mu.Unlock()
-	for _, gene := range allele.Genes {
+func MutateNucleosome(nucleosome *Nucleosome[int]) {
+	nucleosome.Mu.Lock()
+	defer nucleosome.Mu.Unlock()
+	for _, gene := range nucleosome.Genes {
 		MutateGene(gene)
 	}
 }
@@ -36,8 +36,8 @@ func MutateAllele(allele *Allele[int]) {
 func MutateChromosome(chromosome *Chromosome[int]) {
 	chromosome.Mu.Lock()
 	defer chromosome.Mu.Unlock()
-	for _, allele := range chromosome.Alleles {
-		MutateAllele(allele)
+	for _, nucleosome := range chromosome.Nucleosomes {
+		MutateNucleosome(nucleosome)
 	}
 }
 
@@ -53,8 +53,8 @@ func MutateCode(code *Code[int]) {
 	if code.Gene.Ok() {
 		MutateGene(code.Gene.Val)
 	}
-	if code.Allele.Ok() {
-		MutateAllele(code.Allele.Val)
+	if code.Nucleosome.Ok() {
+		MutateNucleosome(code.Nucleosome.Val)
 	}
 	if code.Chromosome.Ok() {
 		MutateChromosome(code.Chromosome.Val)
@@ -71,11 +71,11 @@ func measureGeneFitness(gene *Gene[int]) float64 {
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
 }
 
-func measureAlleleFitness(allele *Allele[int]) float64 {
-	allele.Mu.RLock()
-	defer allele.Mu.RUnlock()
+func measureNucleosomeFitness(nucleosome *Nucleosome[int]) float64 {
+	nucleosome.Mu.RLock()
+	defer nucleosome.Mu.RUnlock()
 	total := 0
-	for _, gene := range allele.Genes {
+	for _, gene := range nucleosome.Genes {
 		total += reduce(gene.Bases, func(a int, b int) int { return a + b })
 	}
 	return 1.0 / (math.Abs(float64(total-target)) + 1.0)
@@ -85,8 +85,8 @@ func measureChromosomeFitness(chromosome *Chromosome[int]) float64 {
 	chromosome.Mu.RLock()
 	defer chromosome.Mu.RUnlock()
 	total := 0
-	for _, allele := range chromosome.Alleles {
-		for _, gene := range allele.Genes {
+	for _, nucleosome := range chromosome.Nucleosomes {
+		for _, gene := range nucleosome.Genes {
 			total += reduce(gene.Bases, func(a int, b int) int { return a + b })
 		}
 	}
@@ -98,8 +98,8 @@ func measureGenomeFitness(genome *Genome[int]) float64 {
 	defer genome.Mu.RUnlock()
 	total := 0
 	for _, chromosome := range genome.Chromosomes {
-		for _, allele := range chromosome.Alleles {
-			for _, gene := range allele.Genes {
+		for _, nucleosome := range chromosome.Nucleosomes {
+			for _, gene := range nucleosome.Genes {
 				total += reduce(gene.Bases, func(a int, b int) int { return a + b })
 			}
 		}
@@ -114,8 +114,8 @@ func measureCodeFitness(code Code[int]) float64 {
 		fitness += measureGeneFitness(code.Gene.Val)
 		fitness_count++
 	}
-	if code.Allele.Ok() {
-		fitness += measureAlleleFitness(code.Allele.Val)
+	if code.Nucleosome.Ok() {
+		fitness += measureNucleosomeFitness(code.Nucleosome.Val)
 		fitness_count++
 	}
 	if code.Chromosome.Ok() {
@@ -138,8 +138,8 @@ func MutateCodeExpensive(code *Code[int]) {
 	if code.Gene.Ok() {
 		MutateGene(code.Gene.Val)
 	}
-	if code.Allele.Ok() {
-		MutateAllele(code.Allele.Val)
+	if code.Nucleosome.Ok() {
+		MutateNucleosome(code.Nucleosome.Val)
 	}
 	if code.Chromosome.Ok() {
 		MutateChromosome(code.Chromosome.Val)
@@ -160,8 +160,8 @@ func measureCodeFitnessExpensive(code Code[int]) float64 {
 		fitness += measureGeneFitness(code.Gene.Val)
 		fitness_count++
 	}
-	if code.Allele.Ok() {
-		fitness += measureAlleleFitness(code.Allele.Val)
+	if code.Nucleosome.Ok() {
+		fitness += measureNucleosomeFitness(code.Nucleosome.Val)
 		fitness_count++
 	}
 	if code.Chromosome.Ok() {
@@ -183,7 +183,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -202,8 +202,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -229,7 +229,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -247,8 +247,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -270,20 +270,20 @@ func TestOptimize(t *testing.T) {
 		})
 	})
 
-	t.Run("Allele", func(t *testing.T) {
+	t.Run("Nucleosome", func(t *testing.T) {
 		t.Run("parallel", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
-				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
+				nucleosome, _ := MakeNucleosome(opts)
+				initial_population = append(initial_population, Code[int]{Nucleosome: NewOption(nucleosome)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -295,25 +295,25 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
 			if err != nil {
-				t.Fatalf("Optimize for Allele[int] failed with error: %v", err)
+				t.Fatalf("Optimize for Nucleosome[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Allele[int] exceeded MaxIterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Nucleosome[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.Score < 0.9 {
-				t.Errorf("Optimize for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
+				t.Errorf("Optimize for Nucleosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 		t.Run("sequential", func(t *testing.T) {
@@ -322,14 +322,14 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
-				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
+				nucleosome, _ := MakeNucleosome(opts)
+				initial_population = append(initial_population, Code[int]{Nucleosome: NewOption(nucleosome)})
 			}
 
 			n_iterations, final_population, err := Optimize(OptimizationParams[int]{
@@ -340,25 +340,25 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
 			})
 
 			if err != nil {
-				t.Fatalf("Optimize for Allele[int] failed with error: %v", err)
+				t.Fatalf("Optimize for Nucleosome[int] failed with error: %v", err)
 			}
 
 			if n_iterations > 1000 {
-				t.Errorf("Optimize for Allele[int] exceeded MaxIterations with %d iterations", n_iterations)
+				t.Errorf("Optimize for Nucleosome[int] exceeded MaxIterations with %d iterations", n_iterations)
 			}
 
 			best_fitness := final_population[0]
 
 			if n_iterations < 1000 && best_fitness.Score < 0.9 {
-				t.Errorf("Optimize for Allele[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
+				t.Errorf("Optimize for Nucleosome[int] failed to meet fitness threshold of 0.9: %f reached instead", best_fitness.Score)
 			}
 		})
 	})
@@ -369,7 +369,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -388,8 +388,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -415,7 +415,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -433,8 +433,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -462,7 +462,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -481,8 +481,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -508,7 +508,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -526,8 +526,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -563,7 +563,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -583,8 +583,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -615,7 +615,7 @@ func TestOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -634,8 +634,8 @@ func TestOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -666,7 +666,7 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -683,8 +683,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -707,7 +707,7 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -724,8 +724,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -745,20 +745,20 @@ func TestTuneOptimize(t *testing.T) {
 		})
 	})
 
-	t.Run("Allele", func(t *testing.T) {
+	t.Run("Nucleosome", func(t *testing.T) {
 		t.Run("cheap", func(t *testing.T) {
 			base_factory := func() int { return RandomInt(-10, 10) }
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
-				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
+				nucleosome, _ := MakeNucleosome(opts)
+				initial_population = append(initial_population, Code[int]{Nucleosome: NewOption(nucleosome)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -768,8 +768,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -777,11 +777,11 @@ func TestTuneOptimize(t *testing.T) {
 
 			n_goroutines, err := TuneOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneOptimization for Allele[int] failed with error: %v", err)
+				t.Fatalf("TuneOptimization for Nucleosome[int] failed with error: %v", err)
 			}
 
 			if n_goroutines > 1 {
-				t.Errorf("TuneOptimization for Allele[int] failed: expected 1, observed %d", n_goroutines)
+				t.Errorf("TuneOptimization for Nucleosome[int] failed: expected 1, observed %d", n_goroutines)
 				res := BenchmarkOptimization(params)
 				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
 				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
@@ -792,14 +792,14 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
 			initial_population := []Code[int]{}
 			for i := 0; i < 10; i++ {
-				allele, _ := MakeAllele(opts)
-				initial_population = append(initial_population, Code[int]{Allele: NewOption(allele)})
+				nucleosome, _ := MakeNucleosome(opts)
+				initial_population = append(initial_population, Code[int]{Nucleosome: NewOption(nucleosome)})
 			}
 			params := OptimizationParams[int]{
 				InitialPopulation: NewOption(initial_population),
@@ -809,8 +809,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -818,11 +818,11 @@ func TestTuneOptimize(t *testing.T) {
 
 			n_goroutines, err := TuneOptimization(params)
 			if err != nil {
-				t.Fatalf("TuneOptimization for Allele[int] failed with error: %v", err)
+				t.Fatalf("TuneOptimization for Nucleosome[int] failed with error: %v", err)
 			}
 
 			if n_goroutines < 1 {
-				t.Errorf("TuneOptimization for Allele[int] failed: expected 1, observed %d", n_goroutines)
+				t.Errorf("TuneOptimization for Nucleosome[int] failed: expected 1, observed %d", n_goroutines)
 				res := BenchmarkOptimization(params)
 				t.Errorf("Mutate: %d, fitness: %d, copy: %d\n", res.CostOfMutate, res.CostOfMeasureFitness, res.CostOfCopy)
 				t.Errorf("(Mutate+fitness)/copy: %d\n", (res.CostOfMutate+res.CostOfMeasureFitness)/res.CostOfCopy)
@@ -836,7 +836,7 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -853,8 +853,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -877,7 +877,7 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -894,8 +894,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -921,7 +921,7 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -938,8 +938,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -962,7 +962,7 @@ func TestTuneOptimize(t *testing.T) {
 			opts := MakeOptions[int]{
 				NBases:       NewOption(uint(5)),
 				NGenes:       NewOption(uint(4)),
-				NAlleles:     NewOption(uint(3)),
+				NNucleosomes: NewOption(uint(3)),
 				NChromosomes: NewOption(uint(2)),
 				BaseFactory:  NewOption(base_factory),
 			}
@@ -979,8 +979,8 @@ func TestTuneOptimize(t *testing.T) {
 				RecombinationOpts: NewOption(RecombineOptions{
 					RecombineGenes:       NewOption(true),
 					MatchGenes:           NewOption(false),
-					RecombineAlleles:     NewOption(true),
-					MatchAlleles:         NewOption(false),
+					RecombineNucleosomes: NewOption(true),
+					MatchNucleosomes:     NewOption(false),
 					RecombineChromosomes: NewOption(true),
 					MatchChromosomes:     NewOption(false),
 				}),
@@ -1006,7 +1006,7 @@ func BenchmarkOptimize(b *testing.B) {
 	make_opts := MakeOptions[int]{
 		NBases:       NewOption(uint(5)),
 		NGenes:       NewOption(uint(4)),
-		NAlleles:     NewOption(uint(3)),
+		NNucleosomes: NewOption(uint(3)),
 		NChromosomes: NewOption(uint(2)),
 		BaseFactory:  NewOption(base_factory),
 	}
@@ -1048,12 +1048,12 @@ func BenchmarkOptimize(b *testing.B) {
 
 	population = []Code[int]{}
 	for i := 0; i < 100; i++ {
-		allele, err := MakeAllele(make_opts)
+		nucleosome, err := MakeNucleosome(make_opts)
 		if err != nil {
 			b.Fatal(err)
 		}
 		population = append(population, Code[int]{
-			Allele: NewOption(allele),
+			Nucleosome: NewOption(nucleosome),
 		})
 	}
 	params = OptimizationParams[int]{
@@ -1064,7 +1064,7 @@ func BenchmarkOptimize(b *testing.B) {
 		PopulationSize:       NewOption(100),
 		ParentsPerGeneration: NewOption(10),
 	}
-	b.Run("AlleleSequential", func(b *testing.B) {
+	b.Run("NucleosomeSequential", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			_, _, err := Optimize(params)
 			if err != nil {
@@ -1072,7 +1072,7 @@ func BenchmarkOptimize(b *testing.B) {
 			}
 		}
 	})
-	b.Run("AlleleParallel", func(b *testing.B) {
+	b.Run("NucleosomeParallel", func(b *testing.B) {
 		params.ParallelCount = NewOption(10)
 		for i := 0; i < b.N; i++ {
 			_, _, err := Optimize(params)

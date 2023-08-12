@@ -33,7 +33,7 @@ func RandomInt(min, max int) int {
 type MakeOptions[T Ordered] struct {
 	NBases       Option[uint]
 	NGenes       Option[uint]
-	NAlleles     Option[uint]
+	NNucleosomes Option[uint]
 	NChromosomes Option[uint]
 	Name         Option[string]
 	BaseFactory  Option[func() T]
@@ -42,8 +42,8 @@ type MakeOptions[T Ordered] struct {
 type RecombineOptions struct {
 	RecombineGenes       Option[bool]
 	MatchGenes           Option[bool]
-	RecombineAlleles     Option[bool]
-	MatchAlleles         Option[bool]
+	RecombineNucleosomes Option[bool]
+	MatchNucleosomes     Option[bool]
 	RecombineChromosomes Option[bool]
 	MatchChromosomes     Option[bool]
 	RecombineGenomes     Option[bool]
@@ -69,8 +69,8 @@ func MakeGene[T Ordered](options MakeOptions[T]) (*Gene[T], error) {
 	return g, nil
 }
 
-func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error) {
-	a := &Allele[T]{}
+func MakeNucleosome[T Ordered](options MakeOptions[T]) (*Nucleosome[T], error) {
+	a := &Nucleosome[T]{}
 	if !options.NGenes.Ok() {
 		return a, missingParameterError{"options.NGenes"}
 	}
@@ -97,8 +97,8 @@ func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error) {
 
 func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error) {
 	c := &Chromosome[T]{}
-	if !options.NAlleles.Ok() {
-		return c, missingParameterError{"options.NAlleles"}
+	if !options.NNucleosomes.Ok() {
+		return c, missingParameterError{"options.NNucleosomes"}
 	}
 	if !options.NGenes.Ok() {
 		return c, missingParameterError{"options.NGenes"}
@@ -109,8 +109,8 @@ func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error) {
 	if !options.BaseFactory.Ok() {
 		return c, missingParameterError{"options.BaseFactory"}
 	}
-	for i := 0; i < int(options.NAlleles.Val); i++ {
-		a, err := MakeAllele(options)
+	for i := 0; i < int(options.NNucleosomes.Val); i++ {
+		a, err := MakeNucleosome(options)
 		if err != nil {
 			return c, err
 		}
@@ -127,10 +127,10 @@ func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error) {
 func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error) {
 	g := &Genome[T]{}
 	if !options.NChromosomes.Ok() {
-		return g, missingParameterError{"options.NAlleles"}
+		return g, missingParameterError{"options.NNucleosomes"}
 	}
-	if !options.NAlleles.Ok() {
-		return g, missingParameterError{"options.NAlleles"}
+	if !options.NNucleosomes.Ok() {
+		return g, missingParameterError{"options.NNucleosomes"}
 	}
 	if !options.NGenes.Ok() {
 		return g, missingParameterError{"options.NGenes"}
@@ -141,7 +141,7 @@ func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error) {
 	if !options.BaseFactory.Ok() {
 		return g, missingParameterError{"options.BaseFactory"}
 	}
-	for i := 0; i < int(options.NAlleles.Val); i++ {
+	for i := 0; i < int(options.NNucleosomes.Val); i++ {
 		c, err := MakeChromosome(options)
 		if err != nil {
 			return g, err
@@ -225,8 +225,8 @@ func GeneFromSequence[T Ordered](sequence []T) *Gene[T] {
 	return g
 }
 
-func AlleleFromMap[T Ordered](serialized map[string][]map[string][]T) *Allele[T] {
-	a := Allele[T]{}
+func NucleosomeFromMap[T Ordered](serialized map[string][]map[string][]T) *Nucleosome[T] {
+	a := Nucleosome[T]{}
 
 	for k1, v1 := range serialized {
 		a.Name = k1
@@ -238,7 +238,7 @@ func AlleleFromMap[T Ordered](serialized map[string][]map[string][]T) *Allele[T]
 	return &a
 }
 
-func AlleleFromSequence[T Ordered](sequence []T, separator []T, placeholder ...[]T) *Allele[T] {
+func NucleosomeFromSequence[T Ordered](sequence []T, separator []T, placeholder ...[]T) *Nucleosome[T] {
 	var part []T
 	parts := make([][]T, 0)
 	var realPlaceholder []T
@@ -267,9 +267,9 @@ func AlleleFromSequence[T Ordered](sequence []T, separator []T, placeholder ...[
 		genes = append(genes, gene)
 	}
 
-	allele := &Allele[T]{Genes: genes}
-	allele.Name, _ = RandomName(3)
-	return allele
+	nucleosome := &Nucleosome[T]{Genes: genes}
+	nucleosome.Name, _ = RandomName(3)
+	return nucleosome
 }
 
 func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]T) *Chromosome[T] {
@@ -278,7 +278,7 @@ func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[strin
 	for k1, v1 := range serialized {
 		c.Name = k1
 		for _, chromosome := range v1 {
-			c.Alleles = append(c.Alleles, AlleleFromMap(chromosome))
+			c.Nucleosomes = append(c.Nucleosomes, NucleosomeFromMap(chromosome))
 		}
 	}
 
@@ -304,19 +304,19 @@ func ChromosomeFromSequence[T Ordered](sequence []T, separator []T, placeholder 
 	}
 	parts = append(parts, sequence)
 
-	alleles := make([]*Allele[T], 0)
-	var allele *Allele[T]
+	nucleosomes := make([]*Nucleosome[T], 0)
+	var nucleosome *Nucleosome[T]
 	for _, seq := range parts {
 		if equal(seq, realPlaceholder) {
 			name, _ := RandomName(3)
-			allele = &Allele[T]{Name: name}
+			nucleosome = &Nucleosome[T]{Name: name}
 		} else {
-			allele = AlleleFromSequence(seq, separator, placeholder...)
+			nucleosome = NucleosomeFromSequence(seq, separator, placeholder...)
 		}
-		alleles = append(alleles, allele)
+		nucleosomes = append(nucleosomes, nucleosome)
 	}
 
-	chromosome := &Chromosome[T]{Alleles: alleles}
+	chromosome := &Chromosome[T]{Nucleosomes: nucleosomes}
 	chromosome.Name, _ = RandomName(2)
 	return chromosome
 }

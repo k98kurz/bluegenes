@@ -307,33 +307,33 @@ func EncodeNeuronAsGene(neuron Neuron) *Gene[float64] {
 	return &gene
 }
 
-// Expresses an Allele as a neural Layer. Allele.Genes encode Neurons.
-func ExpressAlleleAsLayer(allele *Allele[float64],
+// Expresses an Nucleosome as a neural Layer. Nucleosome.Genes encode Neurons.
+func ExpressNucleosomeAsLayer(nucleosome *Nucleosome[float64],
 	activationFunc ...func(float64) float64) Layer {
-	allele.Mu.RLock()
-	defer allele.Mu.RUnlock()
+	nucleosome.Mu.RLock()
+	defer nucleosome.Mu.RUnlock()
 	actFunc := LeakyReLU
 	if len(activationFunc) > 0 {
 		actFunc = activationFunc[0]
 	}
 	neurons := []Neuron{}
-	for _, gene := range allele.Genes {
+	for _, gene := range nucleosome.Genes {
 		neurons = append(neurons, ExpressGeneAsNeuron(gene, actFunc))
 	}
 	return Layer{Neurons: neurons}
 }
 
-func EncodeLayerAsAllele(layer Layer) *Allele[float64] {
+func EncodeLayerAsNucleosome(layer Layer) *Nucleosome[float64] {
 	var genes []*Gene[float64]
 	for _, neuron := range layer.Neurons {
 		genes = append(genes, EncodeNeuronAsGene(neuron))
 	}
-	return &Allele[float64]{
+	return &Nucleosome[float64]{
 		Genes: genes,
 	}
 }
 
-// Expresses a Chromosome as a neural Network. Chromosome.Alleles encode Layers.
+// Expresses a Chromosome as a neural Network. Chromosome.Nucleosomes encode Layers.
 func ExpressChromosomeAsNetwork(chromosome *Chromosome[float64],
 	activationFunc ...func(float64) float64) Network {
 	chromosome.Mu.RLock()
@@ -343,18 +343,18 @@ func ExpressChromosomeAsNetwork(chromosome *Chromosome[float64],
 		actFunc = activationFunc[0]
 	}
 	layers := []Layer{}
-	for _, allele := range chromosome.Alleles {
-		layers = append(layers, ExpressAlleleAsLayer(allele, actFunc))
+	for _, nucleosome := range chromosome.Nucleosomes {
+		layers = append(layers, ExpressNucleosomeAsLayer(nucleosome, actFunc))
 	}
 	return Network{Layers: layers}
 }
 
 func EncodeNetworkAsChromosome(network Network) *Chromosome[float64] {
-	var alleles []*Allele[float64]
+	var nucleosomes []*Nucleosome[float64]
 	for _, layer := range network.Layers {
-		alleles = append(alleles, EncodeLayerAsAllele(layer))
+		nucleosomes = append(nucleosomes, EncodeLayerAsNucleosome(layer))
 	}
 	return &Chromosome[float64]{
-		Alleles: alleles,
+		Nucleosomes: nucleosomes,
 	}
 }

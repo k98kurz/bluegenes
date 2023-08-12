@@ -22,8 +22,8 @@ genetic material is a sequence of `T Ordered`, and it is organized into the
 following hierarchy:
 
 - `type Gene[T Ordered] struct` contains bases (`T`)
-- `type Allele[T Ordered] struct` contains `Gene[T]`s
-- `type Chromosome[T Ordered] struct` contains `Allele[T]`s
+- `type Nucleosome[T Ordered] struct` contains `Gene[T]`s
+- `type Chromosome[T Ordered] struct` contains `Nucleosome[T]`s
 - `type Genome[T Ordered] struct` contains `Chromosome[T]`s
 - `type Code[T Ordered] struct` is a wrapper that contains an `Option` for each above type
 
@@ -35,7 +35,7 @@ relevant instantiation statements.
 There are functions for creating randomized instances of each:
 
 - `func MakeGeneMakeGene[T Ordered](options MakeOptions[T]) (*Gene[T], error)`
-- `func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error)`
+- `func MakeNucleosome[T Ordered](options MakeOptions[T]) (*Nucleosome[T], error)`
 - `func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error)`
 - `func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error)`
 
@@ -124,32 +124,32 @@ making it easy to supply required params and omit optional params. For example,
     - `BaseFactory  Option[func() T]`
     - `NBases       Option[uint]`
     - `NGenes       Option[uint]`
-    - `NAlleles     Option[uint]`
+    - `NNucleosomes     Option[uint]`
     - `NChromosomes Option[uint]`
     - `Name         Option[string]`
 
 This is a type that is used for calls to `Make{X}`. `BaseFactory` and `NBases`
-are required. `NGenes` is required for `MakeAllele`, `MakeChromosome`, and
-`MakeGenome`. `NAlleles` is required for `MakeChromosome` and `MakeGenome`.
+are required. `NGenes` is required for `MakeNucleosome`, `MakeChromosome`, and
+`MakeGenome`. `NNucleosomes` is required for `MakeChromosome` and `MakeGenome`.
 `NChromosomes` is required for `MakeGenome`. `Name` is always optional and only
-applies to the top level; i.e. when calling `MakeAllele` with `Name` specified,
-only the `Allele` will have the name, while the `Gene`s will have random names.
+applies to the top level; i.e. when calling `MakeNucleosome` with `Name` specified,
+only the `Nucleosome` will have the name, while the `Gene`s will have random names.
 
 - `type RecombineOptions struct`
     - `RecombineGenes       Option[bool]`
     - `MatchGenes           Option[bool]`
-    - `RecombineAlleles     Option[bool]`
-    - `MatchAlleles         Option[bool]`
+    - `RecombineNucleosomes     Option[bool]`
+    - `MatchNucleosomes         Option[bool]`
     - `RecombineChromosomes Option[bool]`
     - `MatchChromosomes     Option[bool]`
 
 This controls recombination behavior. All are opt-out; default behavior is to
-treat each unspecified value as `true`. When evolving an `Allele`, the underlying
+treat each unspecified value as `true`. When evolving an `Nucleosome`, the underlying
 `Gene`s will be recombined unless `RecombineGenes` == `NewOption(false)`, and
 they will recombine if they have matching names, if `MatchGenes.IsSet` is
 `false`, or if `MatchGenes` == `NewOption(false)`. When evolving a `Chromosome`,
-the same logic applies regarding `RecombineAlleles` and `MatchAlleles`, and the
-params are also passed into the calls to `Allele.Recombine`, so the options about
+the same logic applies regarding `RecombineNucleosomes` and `MatchNucleosomes`, and the
+params are also passed into the calls to `Nucleosome.Recombine`, so the options about
 gene recombination also apply. Pattern extends to recombining `Genome`s: the
 class doing the recombination checks the params before deciding whether or not
 to recombine the underlying subunits of genetic code.
@@ -186,27 +186,27 @@ from a map; the idea was to enable easy JSON compatibility. `Sequence` and
 `GeneFromSequence` serialize and deserialize from the underlying slice of `T`,
 discarding the `Name` in the process.
 
-### Allele
+### Nucleosome
 
-- `type Allele[T Ordered] struct`
+- `type Nucleosome[T Ordered] struct`
     - `Name  string`
     - `Genes []Gene[T]`
     - `Mu    sync.RWMutex`
-    - `func (self *Allele[T]) Copy() *Allele[T]`
-    - `func (self *Allele[T]) Insert(index int, base T) error`
-    - `func (self *Allele[T]) Append(base T) error`
-    - `func (self *Allele[T]) InsertSequence(index int, sequence []T) error`
-    - `func (self *Allele[T]) Delete(index int) error`
-    - `func (self *Allele[T]) DeleteSequence(index int, size int) error`
-    - `func (self *Allele[T]) Substitute(index int, base T) error`
-    - `func (self *Allele[T]) Recombine(other *Allele[T], indices []int, options RecombineOptions) (*Allele[T], error)`
-    - `func (self *Allele[T]) ToMap() map[string][]T`
-    - `func (self *Allele[T]) Sequence(separator []T) []T`
-- `func MakeAllele[T Ordered](options MakeOptions[T]) (*Allele[T], error)`
-- `func AlleleFromMap[T Ordered](serialized map[string][]map[string][]T) *Allele[T]`
-- `func AlleleFromSequence[T Ordered](sequence []T, separator []T) *Allele[T]`
+    - `func (self *Nucleosome[T]) Copy() *Nucleosome[T]`
+    - `func (self *Nucleosome[T]) Insert(index int, base T) error`
+    - `func (self *Nucleosome[T]) Append(base T) error`
+    - `func (self *Nucleosome[T]) InsertSequence(index int, sequence []T) error`
+    - `func (self *Nucleosome[T]) Delete(index int) error`
+    - `func (self *Nucleosome[T]) DeleteSequence(index int, size int) error`
+    - `func (self *Nucleosome[T]) Substitute(index int, base T) error`
+    - `func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int, options RecombineOptions) (*Nucleosome[T], error)`
+    - `func (self *Nucleosome[T]) ToMap() map[string][]T`
+    - `func (self *Nucleosome[T]) Sequence(separator []T) []T`
+- `func MakeNucleosome[T Ordered](options MakeOptions[T]) (*Nucleosome[T], error)`
+- `func NucleosomeFromMap[T Ordered](serialized map[string][]map[string][]T) *Nucleosome[T]`
+- `func NucleosomeFromSequence[T Ordered](sequence []T, separator []T) *Nucleosome[T]`
 
-The `Allele` is a collection of related `Gene`s. It has similar features to the
+The `Nucleosome` is a collection of related `Gene`s. It has similar features to the
 `Gene`, with the notable difference that `Gene`s will be separated by the
 supplied `separator []T`.
 
@@ -214,7 +214,7 @@ supplied `separator []T`.
 
 - `type Chromosome[T Ordered] struct`
     - `Name  string`
-    - `Alleles []Allele[T]`
+    - `Nucleosomes []Nucleosome[T]`
     - `Mu    sync.RWMutex`
     - `func (self *Chromosome[T]) Copy() *Chromosome[T]`
     - `func (self *Chromosome[T]) Insert(index int, base T) error`
@@ -230,7 +230,7 @@ supplied `separator []T`.
 - `func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]T) *Chromosome[T]`
 - `func ChromosomeFromSequence[T Ordered](sequence []T, separator []T) *Chromosome[T]`
 
-The `Chromosome` is a collection of `Allele`s, which are separated by double
+The `Chromosome` is a collection of `Nucleosome`s, which are separated by double
 `separator []T`s when converted to a sequence.
 
 ### Genome
@@ -304,7 +304,7 @@ evaluating 2 individuals).
     - `Score float64`
 - `type Code[T Ordered] struct`
     - `Gene       Option[*Gene[T]]`
-    - `Allele     Option[*Allele[T]]`
+    - `Nucleosome     Option[*Nucleosome[T]]`
     - `Chromosome Option[*Chromosome[T]]`
     - `Genome     Option[*Genome[T]]`
     - `func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T]`
@@ -468,8 +468,8 @@ The following tests are included:
     - Substitute
     - ToMap
     - Sequence
-- TestAllele
-    - MakeAllele
+- TestNucleosome
+    - MakeNucleosome
     - Append
     - Copy
     - Delete
@@ -508,7 +508,7 @@ The following tests are included:
     - Gene
         - parallel
         - sequential
-    - Allele
+    - Nucleosome
         - parallel
         - sequential
     - Chromosome
@@ -524,7 +524,7 @@ The following tests are included:
     - Gene
         - cheap
         - expensive
-    - Allele
+    - Nucleosome
         - cheap
         - expensive
     - Chromosome

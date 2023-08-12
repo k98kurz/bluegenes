@@ -7,9 +7,9 @@ import (
 )
 
 type Chromosome[T Ordered] struct {
-	Name    string
-	Alleles []*Allele[T]
-	Mu      sync.RWMutex
+	Name        string
+	Nucleosomes []*Nucleosome[T]
+	Mu          sync.RWMutex
 }
 
 func (c *Chromosome[T]) Copy() *Chromosome[T] {
@@ -17,63 +17,63 @@ func (c *Chromosome[T]) Copy() *Chromosome[T] {
 	defer c.Mu.RUnlock()
 	var another Chromosome[T]
 	another.Name = c.Name
-	another.Alleles = make([]*Allele[T], len(c.Alleles))
-	copy(another.Alleles, c.Alleles)
+	another.Nucleosomes = make([]*Nucleosome[T], len(c.Nucleosomes))
+	copy(another.Nucleosomes, c.Nucleosomes)
 	return &another
 }
 
-func (self *Chromosome[T]) Insert(index int, allele *Allele[T]) error {
+func (self *Chromosome[T]) Insert(index int, nucleosome *Nucleosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Alleles) {
+	if 0 > index || index > len(self.Nucleosomes) {
 		return indexError{}
 	}
-	if len(self.Alleles) == 0 {
-		self.Alleles = append(self.Alleles[:], allele)
+	if len(self.Nucleosomes) == 0 {
+		self.Nucleosomes = append(self.Nucleosomes[:], nucleosome)
 	} else {
-		self.Alleles = append(self.Alleles[:index+1], self.Alleles[index:]...)
+		self.Nucleosomes = append(self.Nucleosomes[:index+1], self.Nucleosomes[index:]...)
 	}
-	self.Alleles[index] = allele
+	self.Nucleosomes[index] = nucleosome
 	return nil
 }
 
-func (self *Chromosome[T]) Append(allele *Allele[T]) error {
+func (self *Chromosome[T]) Append(nucleosome *Nucleosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	self.Alleles = append(self.Alleles[:], allele)
+	self.Nucleosomes = append(self.Nucleosomes[:], nucleosome)
 	return nil
 }
 
 func (self *Chromosome[T]) Duplicate(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Alleles) {
+	if 0 > index || index >= len(self.Nucleosomes) {
 		return indexError{}
 	}
-	allele := self.Alleles[index].Copy()
-	alleles := append(self.Alleles[:index], allele)
-	self.Alleles = append(alleles, self.Alleles[index:]...)
+	nucleosome := self.Nucleosomes[index].Copy()
+	nucleosomes := append(self.Nucleosomes[:index], nucleosome)
+	self.Nucleosomes = append(nucleosomes, self.Nucleosomes[index:]...)
 	return nil
 }
 
 func (self *Chromosome[T]) Delete(index int) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Alleles) {
+	if 0 > index || index >= len(self.Nucleosomes) {
 		return indexError{}
 	}
-	self.Alleles = append(self.Alleles[:index], self.Alleles[index+1:]...)
+	self.Nucleosomes = append(self.Nucleosomes[:index], self.Nucleosomes[index+1:]...)
 	return nil
 }
 
-func (self *Chromosome[T]) Substitute(index int, allele *Allele[T]) error {
+func (self *Chromosome[T]) Substitute(index int, nucleosome *Nucleosome[T]) error {
 	self.Mu.Lock()
 	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Alleles) {
+	if 0 > index || index >= len(self.Nucleosomes) {
 		return indexError{}
 	}
-	alleles := append(self.Alleles[:index], allele)
-	self.Alleles = append(alleles, self.Alleles[index+1:]...)
+	nucleosomes := append(self.Nucleosomes[:index], nucleosome)
+	self.Nucleosomes = append(nucleosomes, self.Nucleosomes[index+1:]...)
 	return nil
 }
 
@@ -83,8 +83,8 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 	defer self.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	min_size, _ := min(len(self.Alleles), len(other.Alleles))
-	max_size, _ := max(len(self.Alleles), len(other.Alleles))
+	min_size, _ := min(len(self.Nucleosomes), len(other.Nucleosomes))
+	max_size, _ := max(len(self.Nucleosomes), len(other.Nucleosomes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -115,34 +115,34 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 	}
 	child.Name = name
 
-	for len(child.Alleles) < max_size {
-		child.Alleles = append(child.Alleles, &Allele[T]{})
+	for len(child.Nucleosomes) < max_size {
+		child.Nucleosomes = append(child.Nucleosomes, &Nucleosome[T]{})
 	}
 
-	alleles := make([]*Allele[T], max_size)
-	other_alleles := make([]*Allele[T], max_size)
-	copy(alleles, self.Alleles)
-	copy(other_alleles, other.Alleles)
+	nucleosomes := make([]*Nucleosome[T], max_size)
+	other_nucleosomes := make([]*Nucleosome[T], max_size)
+	copy(nucleosomes, self.Nucleosomes)
+	copy(other_nucleosomes, other.Nucleosomes)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			alleles = append(alleles[:i], self.Alleles[i:]...)
-			other_alleles = append(other_alleles[:i], other.Alleles[i:]...)
+			nucleosomes = append(nucleosomes[:i], self.Nucleosomes[i:]...)
+			other_nucleosomes = append(other_nucleosomes[:i], other.Nucleosomes[i:]...)
 		} else {
-			alleles = append(alleles[:i], other.Alleles[i:]...)
-			other_alleles = append(other_alleles[:i], self.Alleles[i:]...)
+			nucleosomes = append(nucleosomes[:i], other.Nucleosomes[i:]...)
+			other_nucleosomes = append(other_nucleosomes[:i], self.Nucleosomes[i:]...)
 		}
 		swapped = !swapped
 	}
 
-	if !options.RecombineAlleles.Ok() || options.RecombineAlleles.Val {
+	if !options.RecombineNucleosomes.Ok() || options.RecombineNucleosomes.Val {
 		for i := 0; i < min_size; i++ {
-			if (options.MatchAlleles.Ok() &&
-				!options.MatchAlleles.Val) ||
-				!options.MatchAlleles.Ok() ||
-				alleles[i].Name == other_alleles[i].Name {
-				err := alleles[i].Recombine(other_alleles[i], []int{},
-					child.Alleles[i], options)
+			if (options.MatchNucleosomes.Ok() &&
+				!options.MatchNucleosomes.Val) ||
+				!options.MatchNucleosomes.Ok() ||
+				nucleosomes[i].Name == other_nucleosomes[i].Name {
+				err := nucleosomes[i].Recombine(other_nucleosomes[i], []int{},
+					child.Nucleosomes[i], options)
 				if err != nil {
 					return err
 				}
@@ -158,8 +158,8 @@ func (self *Chromosome[T]) ToMap() map[string][]map[string][]map[string][]T {
 	defer self.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]T)
 	serialized[self.Name] = []map[string][]map[string][]T{}
-	for _, allele := range self.Alleles {
-		serialized[self.Name] = append(serialized[self.Name], allele.ToMap())
+	for _, nucleosome := range self.Nucleosomes {
+		serialized[self.Name] = append(serialized[self.Name], nucleosome.ToMap())
 	}
 	return serialized
 }
@@ -177,8 +177,8 @@ func (self *Chromosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, allele := range self.Alleles {
-		parts = append(parts, allele.Sequence(separator, placeholder...))
+	for _, nucleosome := range self.Nucleosomes {
+		parts = append(parts, nucleosome.Sequence(separator, placeholder...))
 	}
 
 	for i, part := range parts {
