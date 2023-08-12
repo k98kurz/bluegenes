@@ -12,79 +12,79 @@ type Nucleosome[T Ordered] struct {
 	Mu    sync.RWMutex
 }
 
-func (a *Nucleosome[T]) Copy() *Nucleosome[T] {
-	a.Mu.RLock()
-	defer a.Mu.RUnlock()
+func (n *Nucleosome[T]) Copy() *Nucleosome[T] {
+	n.Mu.RLock()
+	defer n.Mu.RUnlock()
 	var another Nucleosome[T]
-	another.Name = a.Name
-	another.Genes = make([]*Gene[T], len(a.Genes))
-	copy(another.Genes, a.Genes)
+	another.Name = n.Name
+	another.Genes = make([]*Gene[T], len(n.Genes))
+	copy(another.Genes, n.Genes)
 	return &another
 }
 
-func (self *Nucleosome[T]) Insert(index int, gene *Gene[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Genes) {
+func (n *Nucleosome[T]) Insert(index int, gene *Gene[T]) error {
+	n.Mu.Lock()
+	defer n.Mu.Unlock()
+	if 0 > index || index > len(n.Genes) {
 		return indexError{}
 	}
-	if len(self.Genes) == 0 {
-		self.Genes = append(self.Genes[:], gene)
+	if len(n.Genes) == 0 {
+		n.Genes = append(n.Genes[:], gene)
 	} else {
-		self.Genes = append(self.Genes[:index+1], self.Genes[index:]...)
+		n.Genes = append(n.Genes[:index+1], n.Genes[index:]...)
 	}
-	self.Genes[index] = gene
+	n.Genes[index] = gene
 	return nil
 }
 
-func (self *Nucleosome[T]) Append(gene *Gene[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	self.Genes = append(self.Genes[:], gene)
+func (n *Nucleosome[T]) Append(gene *Gene[T]) error {
+	n.Mu.Lock()
+	defer n.Mu.Unlock()
+	n.Genes = append(n.Genes[:], gene)
 	return nil
 }
 
-func (self *Nucleosome[T]) Duplicate(index int) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Genes) {
+func (n *Nucleosome[T]) Duplicate(index int) error {
+	n.Mu.Lock()
+	defer n.Mu.Unlock()
+	if 0 > index || index >= len(n.Genes) {
 		return indexError{}
 	}
-	Gene := self.Genes[index].Copy()
-	Genes := append(self.Genes[:index], Gene)
-	self.Genes = append(Genes, self.Genes[index:]...)
+	Gene := n.Genes[index].Copy()
+	Genes := append(n.Genes[:index], Gene)
+	n.Genes = append(Genes, n.Genes[index:]...)
 	return nil
 }
 
-func (self *Nucleosome[T]) Delete(index int) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Genes) {
+func (n *Nucleosome[T]) Delete(index int) error {
+	n.Mu.Lock()
+	defer n.Mu.Unlock()
+	if 0 > index || index >= len(n.Genes) {
 		return indexError{}
 	}
-	self.Genes = append(self.Genes[:index], self.Genes[index+1:]...)
+	n.Genes = append(n.Genes[:index], n.Genes[index+1:]...)
 	return nil
 }
 
-func (self *Nucleosome[T]) Substitute(index int, gene *Gene[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Genes) {
+func (n *Nucleosome[T]) Substitute(index int, gene *Gene[T]) error {
+	n.Mu.Lock()
+	defer n.Mu.Unlock()
+	if 0 > index || index >= len(n.Genes) {
 		return indexError{}
 	}
-	genes := append(self.Genes[:index], gene)
-	self.Genes = append(genes, self.Genes[index+1:]...)
+	genes := append(n.Genes[:index], gene)
+	n.Genes = append(genes, n.Genes[index+1:]...)
 	return nil
 }
 
-func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
+func (n *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
 	child *Nucleosome[T], options RecombineOptions) error {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+	n.Mu.RLock()
+	defer n.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	min_size, _ := min(len(self.Genes), len(other.Genes))
-	max_size, _ := max(len(self.Genes), len(other.Genes))
+	min_size, _ := min(len(n.Genes), len(other.Genes))
+	max_size, _ := max(len(n.Genes), len(other.Genes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -102,7 +102,7 @@ func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
 		}
 	}
 
-	name := self.Name
+	name := n.Name
 	if name != other.Name {
 		name_size, err := min(len(name), len(other.Name))
 		if err != nil {
@@ -110,7 +110,7 @@ func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
 		}
 		if name_size > 2 {
 			name_swap := RandomInt(1, name_size-1)
-			name = self.Name[:name_swap] + other.Name[name_swap:]
+			name = n.Name[:name_swap] + other.Name[name_swap:]
 		}
 	}
 	child.Name = name
@@ -121,16 +121,16 @@ func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
 
 	genes := make([]*Gene[T], max_size)
 	other_genes := make([]*Gene[T], max_size)
-	copy(genes, self.Genes)
+	copy(genes, n.Genes)
 	copy(other_genes, other.Genes)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			genes = append(genes[:i], self.Genes[i:]...)
+			genes = append(genes[:i], n.Genes[i:]...)
 			other_genes = append(other_genes[:i], other.Genes[i:]...)
 		} else {
 			genes = append(genes[:i], other.Genes[i:]...)
-			other_genes = append(other_genes[:i], self.Genes[i:]...)
+			other_genes = append(other_genes[:i], n.Genes[i:]...)
 		}
 		swapped = !swapped
 	}
@@ -153,20 +153,20 @@ func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int,
 	return nil
 }
 
-func (self *Nucleosome[T]) ToMap() map[string][]map[string][]T {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (n *Nucleosome[T]) ToMap() map[string][]map[string][]T {
+	n.Mu.RLock()
+	defer n.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]T)
-	serialized[self.Name] = []map[string][]T{}
-	for _, gene := range self.Genes {
-		serialized[self.Name] = append(serialized[self.Name], gene.ToMap())
+	serialized[n.Name] = []map[string][]T{}
+	for _, gene := range n.Genes {
+		serialized[n.Name] = append(serialized[n.Name], gene.ToMap())
 	}
 	return serialized
 }
 
-func (self *Nucleosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (n *Nucleosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
+	n.Mu.RLock()
+	defer n.Mu.RUnlock()
 	var realPlaceholder []T
 	if len(placeholder) > 0 {
 		realPlaceholder = placeholder[0]
@@ -176,7 +176,7 @@ func (self *Nucleosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, gene := range self.Genes {
+	for _, gene := range n.Genes {
 		parts = append(parts, gene.Sequence(placeholder...))
 	}
 

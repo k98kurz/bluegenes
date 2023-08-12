@@ -12,79 +12,79 @@ type Genome[T Ordered] struct {
 	Mu          sync.RWMutex
 }
 
-func (self *Genome[T]) Copy() *Genome[T] {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (g *Genome[T]) Copy() *Genome[T] {
+	g.Mu.RLock()
+	defer g.Mu.RUnlock()
 	var another Genome[T]
-	another.Name = self.Name
-	another.Chromosomes = make([]*Chromosome[T], len(self.Chromosomes))
-	copy(another.Chromosomes, self.Chromosomes)
+	another.Name = g.Name
+	another.Chromosomes = make([]*Chromosome[T], len(g.Chromosomes))
+	copy(another.Chromosomes, g.Chromosomes)
 	return &another
 }
 
-func (self *Genome[T]) Insert(index int, chromosome *Chromosome[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Chromosomes) {
+func (g *Genome[T]) Insert(index int, chromosome *Chromosome[T]) error {
+	g.Mu.Lock()
+	defer g.Mu.Unlock()
+	if 0 > index || index > len(g.Chromosomes) {
 		return indexError{}
 	}
-	if len(self.Chromosomes) == 0 {
-		self.Chromosomes = append(self.Chromosomes[:], chromosome)
+	if len(g.Chromosomes) == 0 {
+		g.Chromosomes = append(g.Chromosomes[:], chromosome)
 	} else {
-		self.Chromosomes = append(self.Chromosomes[:index+1], self.Chromosomes[index:]...)
+		g.Chromosomes = append(g.Chromosomes[:index+1], g.Chromosomes[index:]...)
 	}
-	self.Chromosomes[index] = chromosome
+	g.Chromosomes[index] = chromosome
 	return nil
 }
 
-func (self *Genome[T]) Append(chromosome *Chromosome[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	self.Chromosomes = append(self.Chromosomes[:], chromosome)
+func (g *Genome[T]) Append(chromosome *Chromosome[T]) error {
+	g.Mu.Lock()
+	defer g.Mu.Unlock()
+	g.Chromosomes = append(g.Chromosomes[:], chromosome)
 	return nil
 }
 
-func (self *Genome[T]) Duplicate(index int) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Chromosomes) {
+func (g *Genome[T]) Duplicate(index int) error {
+	g.Mu.Lock()
+	defer g.Mu.Unlock()
+	if 0 > index || index >= len(g.Chromosomes) {
 		return indexError{}
 	}
-	chromosome := self.Chromosomes[index].Copy()
-	chromosomes := append(self.Chromosomes[:index], chromosome)
-	self.Chromosomes = append(chromosomes, self.Chromosomes[index:]...)
+	chromosome := g.Chromosomes[index].Copy()
+	chromosomes := append(g.Chromosomes[:index], chromosome)
+	g.Chromosomes = append(chromosomes, g.Chromosomes[index:]...)
 	return nil
 }
 
-func (self *Genome[T]) Delete(index int) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Chromosomes) {
+func (g *Genome[T]) Delete(index int) error {
+	g.Mu.Lock()
+	defer g.Mu.Unlock()
+	if 0 > index || index >= len(g.Chromosomes) {
 		return indexError{}
 	}
-	self.Chromosomes = append(self.Chromosomes[:index], self.Chromosomes[index+1:]...)
+	g.Chromosomes = append(g.Chromosomes[:index], g.Chromosomes[index+1:]...)
 	return nil
 }
 
-func (self *Genome[T]) Substitute(index int, chromosome *Chromosome[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Chromosomes) {
+func (g *Genome[T]) Substitute(index int, chromosome *Chromosome[T]) error {
+	g.Mu.Lock()
+	defer g.Mu.Unlock()
+	if 0 > index || index >= len(g.Chromosomes) {
 		return indexError{}
 	}
-	chromosomes := append(self.Chromosomes[:index], chromosome)
-	self.Chromosomes = append(chromosomes, self.Chromosomes[index+1:]...)
+	chromosomes := append(g.Chromosomes[:index], chromosome)
+	g.Chromosomes = append(chromosomes, g.Chromosomes[index+1:]...)
 	return nil
 }
 
-func (self *Genome[T]) Recombine(other *Genome[T], indices []int,
+func (g *Genome[T]) Recombine(other *Genome[T], indices []int,
 	child *Genome[T], options RecombineOptions) error {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+	g.Mu.RLock()
+	defer g.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	min_size, _ := min(len(self.Chromosomes), len(other.Chromosomes))
-	max_size, _ := max(len(self.Chromosomes), len(other.Chromosomes))
+	min_size, _ := min(len(g.Chromosomes), len(other.Chromosomes))
+	max_size, _ := max(len(g.Chromosomes), len(other.Chromosomes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -101,7 +101,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int,
 			return indexError{}
 		}
 	}
-	name := self.Name
+	name := g.Name
 	if name != other.Name {
 		name_size, err := min(len(name), len(other.Name))
 		if err != nil {
@@ -109,7 +109,7 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int,
 		}
 		if name_size > 2 {
 			name_swap := RandomInt(1, name_size-1)
-			name = self.Name[:name_swap] + other.Name[name_swap:]
+			name = g.Name[:name_swap] + other.Name[name_swap:]
 		}
 	}
 	child.Name = name
@@ -120,16 +120,16 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int,
 
 	chromosomes := make([]*Chromosome[T], max_size)
 	other_chromosomes := make([]*Chromosome[T], max_size)
-	copy(chromosomes, self.Chromosomes)
+	copy(chromosomes, g.Chromosomes)
 	copy(other_chromosomes, other.Chromosomes)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			chromosomes = append(chromosomes[:i], self.Chromosomes[i:]...)
+			chromosomes = append(chromosomes[:i], g.Chromosomes[i:]...)
 			other_chromosomes = append(other_chromosomes[:i], other.Chromosomes[i:]...)
 		} else {
 			chromosomes = append(chromosomes[:i], other.Chromosomes[i:]...)
-			other_chromosomes = append(other_chromosomes[:i], self.Chromosomes[i:]...)
+			other_chromosomes = append(other_chromosomes[:i], g.Chromosomes[i:]...)
 		}
 		swapped = !swapped
 	}
@@ -152,20 +152,20 @@ func (self *Genome[T]) Recombine(other *Genome[T], indices []int,
 	return nil
 }
 
-func (self *Genome[T]) ToMap() map[string][]map[string][]map[string][]map[string][]T {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (g *Genome[T]) ToMap() map[string][]map[string][]map[string][]map[string][]T {
+	g.Mu.RLock()
+	defer g.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]map[string][]T)
-	serialized[self.Name] = []map[string][]map[string][]map[string][]T{}
-	for _, chromosome := range self.Chromosomes {
-		serialized[self.Name] = append(serialized[self.Name], chromosome.ToMap())
+	serialized[g.Name] = []map[string][]map[string][]map[string][]T{}
+	for _, chromosome := range g.Chromosomes {
+		serialized[g.Name] = append(serialized[g.Name], chromosome.ToMap())
 	}
 	return serialized
 }
 
-func (self *Genome[T]) Sequence(separator []T, placeholder ...[]T) []T {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (g *Genome[T]) Sequence(separator []T, placeholder ...[]T) []T {
+	g.Mu.RLock()
+	defer g.Mu.RUnlock()
 	var realPlaceholder []T
 	if len(placeholder) > 0 {
 		realPlaceholder = placeholder[0]
@@ -177,7 +177,7 @@ func (self *Genome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, chromosome := range self.Chromosomes {
+	for _, chromosome := range g.Chromosomes {
 		parts = append(parts, chromosome.Sequence(separator, placeholder...))
 	}
 

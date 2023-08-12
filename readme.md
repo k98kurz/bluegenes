@@ -160,16 +160,16 @@ to recombine the underlying subunits of genetic code.
     - `Name  string`
     - `Bases []T`
     - `Mu    sync.RWMutex`
-    - `func (self *Gene[T]) Copy() *Gene[T]`
-    - `func (self *Gene[T]) Insert(index int, base T) error`
-    - `func (self *Gene[T]) Append(base T) error`
-    - `func (self *Gene[T]) InsertSequence(index int, sequence []T) error`
-    - `func (self *Gene[T]) Delete(index int) error`
-    - `func (self *Gene[T]) DeleteSequence(index int, size int) error`
-    - `func (self *Gene[T]) Substitute(index int, base T) error`
-    - `func (self *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineOptions) (*Gene[T], error)`
-    - `func (self *Gene[T]) ToMap() map[string][]T`
-    - `func (self *Gene[T]) Sequence() []T`
+    - `func (g *Gene[T]) Copy() *Gene[T]`
+    - `func (g *Gene[T]) Insert(index int, base T) error`
+    - `func (g *Gene[T]) Append(base T) error`
+    - `func (g *Gene[T]) InsertSequence(index int, sequence []T) error`
+    - `func (g *Gene[T]) Delete(index int) error`
+    - `func (g *Gene[T]) DeleteSequence(index int, size int) error`
+    - `func (g *Gene[T]) Substitute(index int, base T) error`
+    - `func (g *Gene[T]) Recombine(other *Gene[T], indices []int, options RecombineOptions) (*Gene[T], error)`
+    - `func (g *Gene[T]) ToMap() map[string][]T`
+    - `func (g *Gene[T]) Sequence() []T`
 - `func MakeGene[T Ordered](options MakeOptions[T]) (*Gene[T], error)`
 - `func GeneFromMap[T Ordered](serialized map[string][]T) *Gene[T]`
 - `func GeneFromSequence[T Ordered](sequence []T) *Gene[T]`
@@ -192,16 +192,16 @@ discarding the `Name` in the process.
     - `Name  string`
     - `Genes []Gene[T]`
     - `Mu    sync.RWMutex`
-    - `func (self *Nucleosome[T]) Copy() *Nucleosome[T]`
-    - `func (self *Nucleosome[T]) Insert(index int, base T) error`
-    - `func (self *Nucleosome[T]) Append(base T) error`
-    - `func (self *Nucleosome[T]) InsertSequence(index int, sequence []T) error`
-    - `func (self *Nucleosome[T]) Delete(index int) error`
-    - `func (self *Nucleosome[T]) DeleteSequence(index int, size int) error`
-    - `func (self *Nucleosome[T]) Substitute(index int, base T) error`
-    - `func (self *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int, options RecombineOptions) (*Nucleosome[T], error)`
-    - `func (self *Nucleosome[T]) ToMap() map[string][]T`
-    - `func (self *Nucleosome[T]) Sequence(separator []T) []T`
+    - `func (n *Nucleosome[T]) Copy() *Nucleosome[T]`
+    - `func (n *Nucleosome[T]) Insert(index int, base T) error`
+    - `func (n *Nucleosome[T]) Append(base T) error`
+    - `func (n *Nucleosome[T]) InsertSequence(index int, sequence []T) error`
+    - `func (n *Nucleosome[T]) Delete(index int) error`
+    - `func (n *Nucleosome[T]) DeleteSequence(index int, size int) error`
+    - `func (n *Nucleosome[T]) Substitute(index int, base T) error`
+    - `func (n *Nucleosome[T]) Recombine(other *Nucleosome[T], indices []int, options RecombineOptions) (*Nucleosome[T], error)`
+    - `func (n *Nucleosome[T]) ToMap() map[string][]T`
+    - `func (n *Nucleosome[T]) Sequence(separator []T) []T`
 - `func MakeNucleosome[T Ordered](options MakeOptions[T]) (*Nucleosome[T], error)`
 - `func NucleosomeFromMap[T Ordered](serialized map[string][]map[string][]T) *Nucleosome[T]`
 - `func NucleosomeFromSequence[T Ordered](sequence []T, separator []T) *Nucleosome[T]`
@@ -216,16 +216,16 @@ supplied `separator []T`.
     - `Name  string`
     - `Nucleosomes []Nucleosome[T]`
     - `Mu    sync.RWMutex`
-    - `func (self *Chromosome[T]) Copy() *Chromosome[T]`
-    - `func (self *Chromosome[T]) Insert(index int, base T) error`
-    - `func (self *Chromosome[T]) Append(base T) error`
-    - `func (self *Chromosome[T]) InsertSequence(index int, sequence []T) error`
-    - `func (self *Chromosome[T]) Delete(index int) error`
-    - `func (self *Chromosome[T]) DeleteSequence(index int, size int) error`
-    - `func (self *Chromosome[T]) Substitute(index int, base T) error`
-    - `func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, options RecombineOptions) (*Chromosome[T], error)`
-    - `func (self *Chromosome[T]) ToMap() map[string][]T`
-    - `func (self *Chromosome[T]) Sequence(separator []T) []T`
+    - `func (c *Chromosome[T]) Copy() *Chromosome[T]`
+    - `func (c *Chromosome[T]) Insert(index int, base T) error`
+    - `func (c *Chromosome[T]) Append(base T) error`
+    - `func (c *Chromosome[T]) InsertSequence(index int, sequence []T) error`
+    - `func (c *Chromosome[T]) Delete(index int) error`
+    - `func (c *Chromosome[T]) DeleteSequence(index int, size int) error`
+    - `func (c *Chromosome[T]) Substitute(index int, base T) error`
+    - `func (c *Chromosome[T]) Recombine(other *Chromosome[T], indices []int, options RecombineOptions) (*Chromosome[T], error)`
+    - `func (c *Chromosome[T]) ToMap() map[string][]T`
+    - `func (c *Chromosome[T]) Sequence(separator []T) []T`
 - `func MakeChromosome[T Ordered](options MakeOptions[T]) (*Chromosome[T], error)`
 - `func ChromosomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]T) *Chromosome[T]`
 - `func ChromosomeFromSequence[T Ordered](sequence []T, separator []T) *Chromosome[T]`
@@ -239,16 +239,16 @@ The `Chromosome` is a collection of `Nucleosome`s, which are separated by double
     - `Name  string`
     - `Chromosomes []Chromosome[T]`
     - `Mu    sync.RWMutex`
-    - `func (self *Genome[T]) Copy() *Genome[T]`
-    - `func (self *Genome[T]) Insert(index int, base T) error`
-    - `func (self *Genome[T]) Append(base T) error`
-    - `func (self *Genome[T]) InsertSequence(index int, sequence []T) error`
-    - `func (self *Genome[T]) Delete(index int) error`
-    - `func (self *Genome[T]) DeleteSequence(index int, size int) error`
-    - `func (self *Genome[T]) Substitute(index int, base T) error`
-    - `func (self *Genome[T]) Recombine(other *Genome[T], indices []int, options RecombineOptions) (*Genome[T], error)`
-    - `func (self *Genome[T]) ToMap() map[string][]T`
-    - `func (self *Genome[T]) Sequence(separator []T) []T`
+    - `func (g *Genome[T]) Copy() *Genome[T]`
+    - `func (g *Genome[T]) Insert(index int, base T) error`
+    - `func (g *Genome[T]) Append(base T) error`
+    - `func (g *Genome[T]) InsertSequence(index int, sequence []T) error`
+    - `func (g *Genome[T]) Delete(index int) error`
+    - `func (g *Genome[T]) DeleteSequence(index int, size int) error`
+    - `func (g *Genome[T]) Substitute(index int, base T) error`
+    - `func (g *Genome[T]) Recombine(other *Genome[T], indices []int, options RecombineOptions) (*Genome[T], error)`
+    - `func (g *Genome[T]) ToMap() map[string][]T`
+    - `func (g *Genome[T]) Sequence(separator []T) []T`
 - `func MakeGenome[T Ordered](options MakeOptions[T]) (*Genome[T], error)`
 - `func GenomeFromMap[T Ordered](serialized map[string][]map[string][]map[string][]map[string][]T) *Genome[T]`
 - `func GenomeFromSequence[T Ordered](sequence []T, separator []T) *Genome[T]`
@@ -307,8 +307,8 @@ evaluating 2 individuals).
     - `Nucleosome     Option[*Nucleosome[T]]`
     - `Chromosome Option[*Chromosome[T]]`
     - `Genome     Option[*Genome[T]]`
-    - `func (self Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T]`
-    - `func (self Code[T]) copy() Code[T]`
+    - `func (c Code[T]) Recombine(other Code[T], recombinationOpts RecombineOptions) Code[T]`
+    - `func (c Code[T]) copy() Code[T]`
 
 These are used in the optimization logic and are exported for experimentation
 with custom optimization loops, e.g. having agents interact in an environment

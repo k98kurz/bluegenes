@@ -15,67 +15,67 @@ type Code[T Ordered] struct {
 	Genome     Option[*Genome[T]]
 }
 
-func (self Code[T]) Recombine(other Code[T], child *Code[T],
+func (c Code[T]) Recombine(other Code[T], child *Code[T],
 	recombinationOpts RecombineOptions) {
-	if self.Gene.Ok() && other.Gene.Ok() &&
+	if c.Gene.Ok() && other.Gene.Ok() &&
 		(!recombinationOpts.RecombineGenes.Ok() ||
 			recombinationOpts.RecombineGenes.Val) {
 		if !child.Gene.Ok() {
 			child.Gene = NewOption(&Gene[T]{})
 		}
-		_ = self.Gene.Val.Recombine(
+		_ = c.Gene.Val.Recombine(
 			other.Gene.Val, []int{}, child.Gene.Val, recombinationOpts,
 		)
 		child.Gene.IsSet = true
 	}
-	if self.Nucleosome.Ok() && other.Nucleosome.Ok() &&
+	if c.Nucleosome.Ok() && other.Nucleosome.Ok() &&
 		(!recombinationOpts.RecombineNucleosomes.Ok() ||
 			recombinationOpts.RecombineNucleosomes.Val) {
 		if !child.Nucleosome.Ok() {
 			child.Nucleosome = NewOption(&Nucleosome[T]{})
 		}
-		_ = self.Nucleosome.Val.Recombine(
+		_ = c.Nucleosome.Val.Recombine(
 			other.Nucleosome.Val, []int{}, child.Nucleosome.Val, recombinationOpts,
 		)
 		child.Nucleosome.IsSet = true
 	}
-	if self.Chromosome.Ok() && other.Chromosome.Ok() &&
+	if c.Chromosome.Ok() && other.Chromosome.Ok() &&
 		(!recombinationOpts.RecombineChromosomes.Ok() ||
 			recombinationOpts.RecombineChromosomes.Val) {
 		if !child.Chromosome.Ok() {
 			child.Chromosome = NewOption(&Chromosome[T]{})
 		}
-		_ = self.Chromosome.Val.Recombine(
+		_ = c.Chromosome.Val.Recombine(
 			other.Chromosome.Val, []int{}, child.Chromosome.Val, recombinationOpts,
 		)
 		child.Chromosome.IsSet = true
 	}
-	if self.Genome.Ok() && other.Genome.Ok() &&
+	if c.Genome.Ok() && other.Genome.Ok() &&
 		(!recombinationOpts.RecombineGenomes.Ok() ||
 			recombinationOpts.RecombineGenomes.Val) {
 		if !child.Genome.Ok() {
 			child.Genome = NewOption(&Genome[T]{})
 		}
-		_ = self.Genome.Val.Recombine(
+		_ = c.Genome.Val.Recombine(
 			other.Genome.Val, []int{}, child.Genome.Val, recombinationOpts,
 		)
 		child.Genome.IsSet = true
 	}
 }
 
-func (self Code[T]) Copy() Code[T] {
+func (c Code[T]) Copy() Code[T] {
 	gm := Code[T]{}
-	if self.Gene.Ok() {
-		gm.Gene = NewOption(self.Gene.Val.Copy())
+	if c.Gene.Ok() {
+		gm.Gene = NewOption(c.Gene.Val.Copy())
 	}
-	if self.Nucleosome.Ok() {
-		gm.Nucleosome = NewOption(self.Nucleosome.Val.Copy())
+	if c.Nucleosome.Ok() {
+		gm.Nucleosome = NewOption(c.Nucleosome.Val.Copy())
 	}
-	if self.Chromosome.Ok() {
-		gm.Chromosome = NewOption(self.Chromosome.Val.Copy())
+	if c.Chromosome.Ok() {
+		gm.Chromosome = NewOption(c.Chromosome.Val.Copy())
 	}
-	if self.Genome.Ok() {
-		gm.Genome = NewOption(self.Genome.Val.Copy())
+	if c.Genome.Ok() {
+		gm.Genome = NewOption(c.Genome.Val.Copy())
 	}
 	return gm
 }

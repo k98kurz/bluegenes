@@ -22,69 +22,69 @@ func (c *Chromosome[T]) Copy() *Chromosome[T] {
 	return &another
 }
 
-func (self *Chromosome[T]) Insert(index int, nucleosome *Nucleosome[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index > len(self.Nucleosomes) {
+func (c *Chromosome[T]) Insert(index int, nucleosome *Nucleosome[T]) error {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	if 0 > index || index > len(c.Nucleosomes) {
 		return indexError{}
 	}
-	if len(self.Nucleosomes) == 0 {
-		self.Nucleosomes = append(self.Nucleosomes[:], nucleosome)
+	if len(c.Nucleosomes) == 0 {
+		c.Nucleosomes = append(c.Nucleosomes[:], nucleosome)
 	} else {
-		self.Nucleosomes = append(self.Nucleosomes[:index+1], self.Nucleosomes[index:]...)
+		c.Nucleosomes = append(c.Nucleosomes[:index+1], c.Nucleosomes[index:]...)
 	}
-	self.Nucleosomes[index] = nucleosome
+	c.Nucleosomes[index] = nucleosome
 	return nil
 }
 
-func (self *Chromosome[T]) Append(nucleosome *Nucleosome[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	self.Nucleosomes = append(self.Nucleosomes[:], nucleosome)
+func (c *Chromosome[T]) Append(nucleosome *Nucleosome[T]) error {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	c.Nucleosomes = append(c.Nucleosomes[:], nucleosome)
 	return nil
 }
 
-func (self *Chromosome[T]) Duplicate(index int) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Nucleosomes) {
+func (c *Chromosome[T]) Duplicate(index int) error {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	if 0 > index || index >= len(c.Nucleosomes) {
 		return indexError{}
 	}
-	nucleosome := self.Nucleosomes[index].Copy()
-	nucleosomes := append(self.Nucleosomes[:index], nucleosome)
-	self.Nucleosomes = append(nucleosomes, self.Nucleosomes[index:]...)
+	nucleosome := c.Nucleosomes[index].Copy()
+	nucleosomes := append(c.Nucleosomes[:index], nucleosome)
+	c.Nucleosomes = append(nucleosomes, c.Nucleosomes[index:]...)
 	return nil
 }
 
-func (self *Chromosome[T]) Delete(index int) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Nucleosomes) {
+func (c *Chromosome[T]) Delete(index int) error {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	if 0 > index || index >= len(c.Nucleosomes) {
 		return indexError{}
 	}
-	self.Nucleosomes = append(self.Nucleosomes[:index], self.Nucleosomes[index+1:]...)
+	c.Nucleosomes = append(c.Nucleosomes[:index], c.Nucleosomes[index+1:]...)
 	return nil
 }
 
-func (self *Chromosome[T]) Substitute(index int, nucleosome *Nucleosome[T]) error {
-	self.Mu.Lock()
-	defer self.Mu.Unlock()
-	if 0 > index || index >= len(self.Nucleosomes) {
+func (c *Chromosome[T]) Substitute(index int, nucleosome *Nucleosome[T]) error {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	if 0 > index || index >= len(c.Nucleosomes) {
 		return indexError{}
 	}
-	nucleosomes := append(self.Nucleosomes[:index], nucleosome)
-	self.Nucleosomes = append(nucleosomes, self.Nucleosomes[index+1:]...)
+	nucleosomes := append(c.Nucleosomes[:index], nucleosome)
+	c.Nucleosomes = append(nucleosomes, c.Nucleosomes[index+1:]...)
 	return nil
 }
 
-func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
+func (c *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 	child *Chromosome[T], options RecombineOptions) error {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+	c.Mu.RLock()
+	defer c.Mu.RUnlock()
 	other.Mu.RLock()
 	defer other.Mu.RUnlock()
-	min_size, _ := min(len(self.Nucleosomes), len(other.Nucleosomes))
-	max_size, _ := max(len(self.Nucleosomes), len(other.Nucleosomes))
+	min_size, _ := min(len(c.Nucleosomes), len(other.Nucleosomes))
+	max_size, _ := max(len(c.Nucleosomes), len(other.Nucleosomes))
 
 	if len(indices) == 0 && min_size > 1 {
 		max_swaps := math.Ceil(math.Log(float64(min_size)))
@@ -102,7 +102,7 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 		}
 	}
 
-	name := self.Name
+	name := c.Name
 	if name != other.Name {
 		name_size, err := min(len(name), len(other.Name))
 		if err != nil {
@@ -110,7 +110,7 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 		}
 		if name_size > 2 {
 			name_swap := RandomInt(1, name_size-1)
-			name = self.Name[:name_swap] + other.Name[name_swap:]
+			name = c.Name[:name_swap] + other.Name[name_swap:]
 		}
 	}
 	child.Name = name
@@ -121,16 +121,16 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 
 	nucleosomes := make([]*Nucleosome[T], max_size)
 	other_nucleosomes := make([]*Nucleosome[T], max_size)
-	copy(nucleosomes, self.Nucleosomes)
+	copy(nucleosomes, c.Nucleosomes)
 	copy(other_nucleosomes, other.Nucleosomes)
 	swapped := false
 	for _, i := range indices {
 		if swapped {
-			nucleosomes = append(nucleosomes[:i], self.Nucleosomes[i:]...)
+			nucleosomes = append(nucleosomes[:i], c.Nucleosomes[i:]...)
 			other_nucleosomes = append(other_nucleosomes[:i], other.Nucleosomes[i:]...)
 		} else {
 			nucleosomes = append(nucleosomes[:i], other.Nucleosomes[i:]...)
-			other_nucleosomes = append(other_nucleosomes[:i], self.Nucleosomes[i:]...)
+			other_nucleosomes = append(other_nucleosomes[:i], c.Nucleosomes[i:]...)
 		}
 		swapped = !swapped
 	}
@@ -153,20 +153,20 @@ func (self *Chromosome[T]) Recombine(other *Chromosome[T], indices []int,
 	return nil
 }
 
-func (self *Chromosome[T]) ToMap() map[string][]map[string][]map[string][]T {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (c *Chromosome[T]) ToMap() map[string][]map[string][]map[string][]T {
+	c.Mu.RLock()
+	defer c.Mu.RUnlock()
 	serialized := make(map[string][]map[string][]map[string][]T)
-	serialized[self.Name] = []map[string][]map[string][]T{}
-	for _, nucleosome := range self.Nucleosomes {
-		serialized[self.Name] = append(serialized[self.Name], nucleosome.ToMap())
+	serialized[c.Name] = []map[string][]map[string][]T{}
+	for _, nucleosome := range c.Nucleosomes {
+		serialized[c.Name] = append(serialized[c.Name], nucleosome.ToMap())
 	}
 	return serialized
 }
 
-func (self *Chromosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
-	self.Mu.RLock()
-	defer self.Mu.RUnlock()
+func (c *Chromosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
+	c.Mu.RLock()
+	defer c.Mu.RUnlock()
 	var realPlaceholder []T
 	if len(placeholder) > 0 {
 		realPlaceholder = placeholder[0]
@@ -177,7 +177,7 @@ func (self *Chromosome[T]) Sequence(separator []T, placeholder ...[]T) []T {
 	sequence := make([]T, 0)
 	parts := make([][]T, 0)
 
-	for _, nucleosome := range self.Nucleosomes {
+	for _, nucleosome := range c.Nucleosomes {
 		parts = append(parts, nucleosome.Sequence(separator, placeholder...))
 	}
 
