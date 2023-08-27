@@ -23,7 +23,7 @@ func TestNeural(t *testing.T) {
 			observed := neuron.Activate([]float64{1.0, 1.0})
 			expected := math.Tanh(0.1 + 0.1 + 0.2)
 			if !fuzzyEqual(expected, observed) {
-				t.Fatal("Neuron.Activate returned wrong valu")
+				t.Fatal("Neuron.Activate returned wrong value")
 			}
 		})
 		t.Run("NewNeuron", func(t *testing.T) {
@@ -32,14 +32,14 @@ func TestNeural(t *testing.T) {
 			observed := neuron.Activate([]float64{1.0, 1.0})
 			expected := math.Tanh(0.1 + 0.1 + 0.2)
 			if !fuzzyEqual(expected, observed) {
-				t.Fatal("Neuron.Activate returned wrong valu")
+				t.Fatal("Neuron.Activate returned wrong value")
 			}
 			// default value
 			neuron = NewNeuron([]float64{0.1, 0.2}, 0.1)
 			observed = neuron.Activate([]float64{1.0, 1.0})
 			expected = math.Tanh(0.1 + 0.1 + 0.2)
 			if !fuzzyEqual(expected, observed) {
-				t.Fatal("Neuron.Activate returned wrong valu")
+				t.Fatal("Neuron.Activate returned wrong value")
 			}
 		})
 	})
